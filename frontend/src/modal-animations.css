@@ -1,0 +1,17 @@
+/* Add this to your existing index.css file for the modal animation */
+
+/* Modal Scale-In Animation */
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}

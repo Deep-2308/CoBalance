@@ -1,0 +1,32 @@
+{
+  "name": "cobalance-monorepo",
+  "version": "1.0.0",
+  "description": "CoBalance - Smart Ledger & Expense Sharing App",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --prefix \"[{name}]\" --names \"backend,frontend\" --prefix-colors \"cyan,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ..",
+    "clean": "npm run clean:root && npm run clean:backend && npm run clean:frontend",
+    "clean:root": "if exist node_modules rmdir /s /q node_modules",
+    "clean:backend": "cd backend && if exist node_modules rmdir /s /q node_modules && cd ..",
+    "clean:frontend": "cd frontend && if exist node_modules rmdir /s /q node_modules && cd ..",
+    "fresh-start": "npm run clean && npm run install:all",
+    "build": "cd backend && npm run build && cd ../frontend && npm run build",
+    "start": "concurrently --kill-others-on-fail --prefix \"[{name}]\" --names \"backend,frontend\" --prefix-colors \"cyan,magenta\" \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm run preview"
+  },
+  "keywords": [
+    "ledger",
+    "expense-sharing",
+    "fintech",
+    "saas"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

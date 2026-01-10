@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 shadow-md;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-sm p-4 border border-gray-100;
+  }
+
+  .balance-positive {
+    @apply text-green-600;
+  }
+
+  .balance-negative {
+    @apply text-red-600;
+  }
+
+  .balance-zero {
+    @apply text-gray-500;
+  }
+
+  .bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .page-container {
+    @apply pb-20 px-4 pt-4 max-w-2xl mx-auto;
+  }
+}
