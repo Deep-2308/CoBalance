@@ -5,6 +5,7 @@ import api from '../services/api';
 
 const AddContactPage = () => {
     const [name, setName] = useState('');
+    const [mobile, setMobile] = useState('');
     const [type, setType] = useState('customer');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -21,7 +22,7 @@ const AddContactPage = () => {
         setLoading(true);
 
         try {
-            await api.post('/ledger/contacts', { name, type });
+            await api.post('/ledger/contacts', { name, type, mobile: mobile || null });
             navigate('/ledger');
         } catch (err) {
             console.error('Failed to create contact:', err);
@@ -55,6 +56,22 @@ const AddContactPage = () => {
                         placeholder="Enter contact name"
                         required
                     />
+                </div>
+
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Mobile Number (for WhatsApp reminders)
+                    </label>
+                    <input
+                        type="tel"
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value)}
+                        className="input"
+                        placeholder="+91 98765 43210"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                        Include country code (e.g., +91 for India)
+                    </p>
                 </div>
 
                 <div className="mb-6">

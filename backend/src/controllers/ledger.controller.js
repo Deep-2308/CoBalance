@@ -3,7 +3,7 @@ import supabase from '../utils/supabase.js';
 // Create contact
 export const createContact = async (req, res) => {
     try {
-        const { name, type } = req.body;
+        const { name, type, mobile } = req.body;
         const userId = req.user.userId;
 
         if (!name) {
@@ -13,7 +13,7 @@ export const createContact = async (req, res) => {
         if (supabase) {
             const { data: contact, error } = await supabase
                 .from('contacts')
-                .insert({ user_id: userId, name, type: type || 'other' })
+                .insert({ user_id: userId, name, type: type || 'other', mobile: mobile || null })
                 .select()
                 .single();
 
@@ -23,7 +23,7 @@ export const createContact = async (req, res) => {
             // Mock response
             res.status(201).json({
                 success: true,
-                contact: { id: 'mock-contact-id', user_id: userId, name, type: type || 'other' }
+                contact: { id: 'mock-contact-id', user_id: userId, name, type: type || 'other', mobile: mobile || null }
             });
         }
     } catch (error) {
@@ -139,13 +139,19 @@ export const getContactDetail = async (req, res) => {
 export const updateContact = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, type } = req.body;
+        const { name, type, mobile } = req.body;
         const userId = req.user.userId;
+
+        // Build update object with only provided fields
+        const updateData = {};
+        if (name !== undefined) updateData.name = name;
+        if (type !== undefined) updateData.type = type;
+        if (mobile !== undefined) updateData.mobile = mobile || null;
 
         if (supabase) {
             const { data: contact, error } = await supabase
                 .from('contacts')
-                .update({ name, type })
+                .update(updateData)
                 .eq('id', id)
                 .eq('user_id', userId)
                 .select()
@@ -154,7 +160,7 @@ export const updateContact = async (req, res) => {
             if (error) throw error;
             res.json({ success: true, contact });
         } else {
-            res.json({ success: true, contact: { id, name, type } });
+            res.json({ success: true, contact: { id, name, type, mobile } });
         }
     } catch (error) {
         console.error('Update contact error:', error);

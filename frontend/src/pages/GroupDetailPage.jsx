@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, User, Trash2, UserPlus } from 'lucide-react';
+import { ArrowLeft, Plus, User, Trash2, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import api from '../services/api';
 import AddMemberModal from '../components/AddMemberModal';
+import ReminderConfirmModal from '../components/ReminderConfirmModal';
 
 const GroupDetailPage = () => {
     const { id } = useParams();
@@ -16,6 +17,10 @@ const GroupDetailPage = () => {
     
     // Add Member Modal State
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+    
+    // Reminder Modal State
+    const [showReminderModal, setShowReminderModal] = useState(false);
+    const [selectedMember, setSelectedMember] = useState(null);
 
     useEffect(() => {
         fetchGroupDetail();
@@ -62,11 +67,24 @@ const GroupDetailPage = () => {
         }
     };
 
+    const handleSendReminder = (member) => {
+        setSelectedMember(member);
+        setShowReminderModal(true);
+    };
+
     const getBalanceColor = (balance) => {
         const bal = parseFloat(balance);
         if (bal > 0) return 'text-green-600';
         if (bal < 0) return 'text-red-600';
         return 'text-gray-500';
+    };
+
+    // Check if this member owes you money (negative balance means they owe)
+    // In group context, negative balance for the member means they owe money to the group
+    const canSendReminder = (memberBalance) => {
+        const bal = parseFloat(memberBalance.balance);
+        // Negative balance means this member owes money
+        return bal < 0;
     };
 
     if (loading) {
@@ -117,11 +135,27 @@ const GroupDetailPage = () => {
                                         <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
                                             <User className="w-5 h-5 text-primary-600" />
                                         </div>
-                                        <p className="font-medium text-gray-900">{balance.user_name}</p>
+                                        <div>
+                                            <p className="font-medium text-gray-900">{balance.user_name}</p>
+                                            {balance.mobile && (
+                                                <p className="text-xs text-gray-500">{balance.mobile}</p>
+                                            )}
+                                        </div>
                                     </div>
-                                    <p className={`font-bold ${getBalanceColor(balance.balance)}`}>
-                                        {parseFloat(balance.balance) > 0 ? '+' : ''}₹{parseFloat(balance.balance).toFixed(2)}
-                                    </p>
+                                    <div className="flex items-center gap-3">
+                                        <p className={`font-bold ${getBalanceColor(balance.balance)}`}>
+                                            {parseFloat(balance.balance) > 0 ? '+' : ''}₹{parseFloat(balance.balance).toFixed(2)}
+                                        </p>
+                                        {canSendReminder(balance) && (
+                                            <button
+                                                onClick={() => handleSendReminder(balance)}
+                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                title="Send reminder"
+                                            >
+                                                <Send className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -184,6 +218,25 @@ const GroupDetailPage = () => {
                 groupId={id}
                 onMemberAdded={handleMemberAdded}
             />
+
+            {/* Reminder Modal */}
+            {selectedMember && (
+                <ReminderConfirmModal
+                    isOpen={showReminderModal}
+                    onClose={() => {
+                        setShowReminderModal(false);
+                        setSelectedMember(null);
+                    }}
+                    recipientName={selectedMember.user_name}
+                    recipientMobile={selectedMember.mobile || ''}
+                    amount={Math.abs(parseFloat(selectedMember.balance))}
+                    groupId={id}
+                    targetUserId={selectedMember.user_id}
+                    onReminderSent={() => {
+                        // Optionally refresh balances
+                    }}
+                />
+            )}
         </div>
     );
 };

@@ -40,6 +40,7 @@ CREATE TABLE contacts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
+    mobile VARCHAR(20), -- Optional: for WhatsApp reminders
     type VARCHAR(20) DEFAULT 'other', -- customer, friend, supplier, other
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
