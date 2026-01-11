@@ -1,14 +1,33 @@
 import express from 'express';
-import { sendOTP, verifyOTP, updateProfile, getCurrentUser } from '../controllers/auth.controller.js';
+import { 
+    sendLoginOTP, 
+    verifyLoginOTP, 
+    sendRegisterOTP, 
+    verifyRegisterOTP, 
+    completeRegistration,
+    updateProfile, 
+    getCurrentUser 
+} from '../controllers/auth.controller.js';
 import { authenticateToken } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
-// Public routes
-router.post('/send-otp', sendOTP);
-router.post('/verify-otp', verifyOTP);
+// ============================================
+// LOGIN FLOW (user must exist)
+// ============================================
+router.post('/login/send-otp', sendLoginOTP);
+router.post('/login/verify-otp', verifyLoginOTP);
 
-// Protected routes
+// ============================================
+// REGISTER FLOW (user must NOT exist)
+// ============================================
+router.post('/register/send-otp', sendRegisterOTP);
+router.post('/register/verify-otp', verifyRegisterOTP);
+router.post('/register/complete', completeRegistration);
+
+// ============================================
+// PROTECTED ROUTES
+// ============================================
 router.post('/update-profile', authenticateToken, updateProfile);
 router.get('/me', authenticateToken, getCurrentUser);
 

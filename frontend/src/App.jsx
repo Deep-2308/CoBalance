@@ -3,9 +3,11 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Auth Pages
-import LoginPage from './pages/LoginPage';
-import OTPVerificationPage from './pages/OTPVerificationPage';
-import LanguageSelectionPage from './pages/LanguageSelectionPage';
+import WelcomePage from './pages/WelcomePage';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
+import OTPVerifyPage from './pages/auth/OTPVerifyPage';
+import RegistrationFormPage from './pages/auth/RegistrationFormPage';
 
 // Main Pages
 import DashboardPage from './pages/DashboardPage';
@@ -19,18 +21,38 @@ import AddGroupPage from './pages/AddGroupPage';
 import GroupDetailPage from './pages/GroupDetailPage';
 import AddExpensePage from './pages/AddExpensePage';
 import SettlementsPage from './pages/SettlementsPage';
+import ProfilePage from './pages/ProfilePage';
+import EditProfilePage from './pages/EditProfilePage';
+import SecurityPage from './pages/SecurityPage';
 
 function App() {
     return (
         <AuthProvider>
             <Router>
                 <Routes>
-                    {/* Public Routes */}
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/verify-otp" element={<OTPVerificationPage />} />
-                    <Route path="/language-selection" element={<LanguageSelectionPage />} />
+                    {/* ============================================ */}
+                    {/* AUTH ROUTES - Public */}
+                    {/* ============================================ */}
+                    
+                    {/* Welcome page with Login/Register buttons */}
+                    <Route path="/auth" element={<WelcomePage />} />
+                    
+                    {/* Login flow */}
+                    <Route path="/auth/login" element={<LoginPage />} />
+                    
+                    {/* Register flow */}
+                    <Route path="/auth/register" element={<RegisterPage />} />
+                    
+                    {/* OTP verification (shared by login & register) */}
+                    <Route path="/auth/verify-otp" element={<OTPVerifyPage />} />
+                    
+                    {/* Registration completion form */}
+                    <Route path="/auth/register/complete" element={<RegistrationFormPage />} />
 
-                    {/* Protected Routes */}
+                    {/* ============================================ */}
+                    {/* PROTECTED ROUTES */}
+                    {/* ============================================ */}
+                    
                     <Route
                         path="/dashboard"
                         element={
@@ -119,9 +141,44 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+                    <Route
+                        path="/profile"
+                        element={
+                            <ProtectedRoute>
+                                <ProfilePage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/profile/edit"
+                        element={
+                            <ProtectedRoute>
+                                <EditProfilePage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/profile/security"
+                        element={
+                            <ProtectedRoute>
+                                <SecurityPage />
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    {/* Default Redirect */}
-                    <Route path="/" element={<Navigate to="/login" replace />} />
+                    {/* ============================================ */}
+                    {/* REDIRECTS */}
+                    {/* ============================================ */}
+                    
+                    {/* Default: redirect to auth welcome page */}
+                    <Route path="/" element={<Navigate to="/auth" replace />} />
+                    
+                    {/* Legacy routes: redirect to new auth routes */}
+                    <Route path="/login" element={<Navigate to="/auth/login" replace />} />
+                    <Route path="/verify-otp" element={<Navigate to="/auth" replace />} />
+                    <Route path="/language-selection" element={<Navigate to="/auth" replace />} />
+                    
+                    {/* Catch-all: redirect to dashboard if logged in */}
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
             </Router>

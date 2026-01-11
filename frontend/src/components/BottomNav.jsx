@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Book, Users, TrendingUp } from 'lucide-react';
+import { Home, Book, Users, TrendingUp, User } from 'lucide-react';
 
 const BottomNav = () => {
     const navItems = [
@@ -7,6 +7,7 @@ const BottomNav = () => {
         { path: '/ledger', label: 'Ledger', icon: Book },
         { path: '/groups', label: 'Groups', icon: Users },
         { path: '/settlements', label: 'Settle', icon: TrendingUp },
+        { path: '/profile', label: 'Profile', icon: User },
     ];
 
     return (

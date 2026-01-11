@@ -32,25 +32,60 @@ if (USE_MOCK_AUTH) {
  * The implementation is swapped based on VITE_USE_MOCK_AUTH.
  */
 export const AuthService = {
+  // ============================================
+  // LOGIN FLOW
+  // ============================================
+  
   /**
-   * Send OTP to mobile number
-   * @param {string} mobile - Mobile number with country code (e.g., +911234567890)
-   * @returns {Promise<{success: boolean, message: string, _dev_otp?: string}>}
+   * Send OTP for login (user must exist)
+   * @param {string} identifier - Email or mobile number
+   * @returns {Promise<{success: boolean, message: string, identifierType: string, _dev_otp?: string}>}
    */
-  sendOTP: (mobile) => authService.sendOTP(mobile),
+  sendLoginOTP: (identifier) => authService.sendLoginOTP(identifier),
 
   /**
-   * Verify OTP and authenticate user
-   * @param {string} mobile - Mobile number
+   * Verify OTP and login user
+   * @param {string} identifier - Email or mobile number
    * @param {string} otp - 6-digit OTP code
    * @returns {Promise<{success: boolean, token: string, user: Object}>}
    */
-  verifyOTP: (mobile, otp) => authService.verifyOTP(mobile, otp),
+  verifyLoginOTP: (identifier, otp) => authService.verifyLoginOTP(identifier, otp),
 
+  // ============================================
+  // REGISTER FLOW
+  // ============================================
+  
+  /**
+   * Send OTP for registration (user must NOT exist)
+   * @param {string} identifier - Email or mobile number
+   * @returns {Promise<{success: boolean, message: string, identifierType: string, _dev_otp?: string}>}
+   */
+  sendRegisterOTP: (identifier) => authService.sendRegisterOTP(identifier),
+
+  /**
+   * Verify OTP for registration (returns temp token)
+   * @param {string} identifier - Email or mobile number
+   * @param {string} otp - 6-digit OTP code
+   * @returns {Promise<{success: boolean, tempToken: string, identifier: string, identifierType: string}>}
+   */
+  verifyRegisterOTP: (identifier, otp) => authService.verifyRegisterOTP(identifier, otp),
+
+  /**
+   * Complete registration with user details
+   * @param {string} tempToken - Temporary registration token
+   * @param {Object} userData - User data {name, userType, language, termsAccepted}
+   * @returns {Promise<{success: boolean, token: string, user: Object}>}
+   */
+  completeRegistration: (tempToken, userData) => authService.completeRegistration(tempToken, userData),
+
+  // ============================================
+  // PROFILE MANAGEMENT
+  // ============================================
+  
   /**
    * Update user profile
    * @param {string} token - JWT token
-   * @param {Object} userData - User data to update {name, language}
+   * @param {Object} userData - User data to update {name, language, userType}
    * @returns {Promise<{success: boolean, user: Object}>}
    */
   updateProfile: (token, userData) => authService.updateProfile(token, userData),

@@ -12,6 +12,8 @@ import settlementsRoutes from './routes/settlements.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import remindersRoutes from './routes/reminders.routes.js';
 import contactProfileRoutes from './routes/contact-profile.routes.js';
+import profileRoutes from './routes/profile.routes.js';
+import securityRoutes from './routes/security.routes.js';
 
 dotenv.config();
 
@@ -41,6 +43,8 @@ app.use('/api/settlements', settlementsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/contacts', contactProfileRoutes);
 app.use('/api/reminders', remindersRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/security', securityRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -1,5 +1,6 @@
 -- CoBalance Database Schema
 -- PostgreSQL / Supabase
+-- Updated for explicit Login/Register flows with email support
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -7,25 +8,32 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Users table
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mobile VARCHAR(15) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE,
+    mobile VARCHAR(15) UNIQUE,
     name VARCHAR(100),
+    user_type VARCHAR(20) DEFAULT 'individual', -- 'individual' or 'business'
     language VARCHAR(10) DEFAULT 'en',
+    terms_accepted_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    -- At least one identifier (email or mobile) is required
+    CONSTRAINT users_email_or_mobile_check CHECK (email IS NOT NULL OR mobile IS NOT NULL)
 );
 
 -- OTP storage table (temporary, auto-expire)
 CREATE TABLE otp_codes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mobile VARCHAR(15) NOT NULL,
+    identifier VARCHAR(255) NOT NULL, -- email or mobile
+    identifier_type VARCHAR(10) NOT NULL, -- 'email' or 'mobile'
     otp VARCHAR(6) NOT NULL,
+    purpose VARCHAR(10) NOT NULL, -- 'login' or 'register'
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Index for quick OTP lookup
-CREATE INDEX idx_otp_mobile ON otp_codes(mobile, verified, expires_at);
+CREATE INDEX idx_otp_identifier ON otp_codes(identifier, purpose, verified, expires_at);
 
 -- Contacts table (for ledger module)
 CREATE TABLE contacts (
