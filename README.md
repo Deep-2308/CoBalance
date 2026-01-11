@@ -5,29 +5,34 @@ CoBalance is a production-ready SaaS application that combines digital ledger bo
 ## Features
 
 ### 🔐 Authentication
+
 - Mobile number-based OTP authentication
 - Secure JWT token management
-- Multi-language support (English, Hindi)
+- Multi-language support (English, Hindi, etc..)
 
 ### 📊 Digital Ledger
+
 - Track personal and business transactions
 - Manage contacts (customers, friends, suppliers)
 - Automatic balance calculation
 - Transaction history with running balance
 
 ### 👥 Group Expense Management
+
 - Create groups for shared expenses
 - Add expenses with flexible splitting
 - Automatic member balance calculation
 - Real-time expense tracking
 
 ### 💰 Smart Settlements
+
 - Debt simplification algorithm
 - Minimized settlement transactions
 - Clear payment suggestions
 - Mark settlements as paid
 
 ### 📱 Reminders
+
 - WhatsApp deep-link integration
 - Send payment reminders to contacts
 - Pre-filled reminder messages
@@ -35,6 +40,7 @@ CoBalance is a production-ready SaaS application that combines digital ledger bo
 ## Tech Stack
 
 ### Frontend
+
 - **Framework**: React + Vite
 - **Styling**: Tailwind CSS
 - **Routing**: React Router
@@ -44,6 +50,7 @@ CoBalance is a production-ready SaaS application that combines digital ledger bo
 - **Date Formatting**: date-fns
 
 ### Backend
+
 - **Runtime**: Node.js
 - **Framework**: Express.js
 - **Database**: PostgreSQL (Supabase)
@@ -52,6 +59,7 @@ CoBalance is a production-ready SaaS application that combines digital ledger bo
 - **Security**: Helmet for secure headers
 
 ### Database
+
 - **Provider**: Supabase (PostgreSQL)
 - **ORM**: Direct SQL queries via Supabase client
 
@@ -86,6 +94,7 @@ CoBalance_SAASapp/
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ installed
 - Supabase account (or PostgreSQL database)
 - npm or yarn
@@ -129,6 +138,7 @@ Frontend will run on `http://localhost:5173`
 ## Environment Variables
 
 ### Backend (.env)
+
 ```env
 SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_anon_key
@@ -140,6 +150,7 @@ FRONTEND_URL=http://localhost:5173
 ```
 
 ### Frontend (.env)
+
 ```env
 VITE_API_BASE_URL=http://localhost:5000
 ```
@@ -147,12 +158,14 @@ VITE_API_BASE_URL=http://localhost:5000
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/send-otp` - Send OTP to mobile
 - `POST /api/auth/verify-otp` - Verify OTP and login
 - `POST /api/auth/update-profile` - Update user profile
 - `GET /api/auth/me` - Get current user
 
 ### Ledger
+
 - `POST /api/ledger/contacts` - Create contact
 - `GET /api/ledger/contacts` - List contacts
 - `GET /api/ledger/contacts/:id` - Get contact details
@@ -162,6 +175,7 @@ VITE_API_BASE_URL=http://localhost:5000
 - `GET /api/ledger/summary` - Get ledger summary
 
 ### Groups
+
 - `POST /api/groups` - Create group
 - `GET /api/groups` - List groups
 - `GET /api/groups/:id` - Get group details
@@ -173,28 +187,35 @@ VITE_API_BASE_URL=http://localhost:5000
 - `GET /api/groups/:id/balances` - Get member balances
 
 ### Settlements
+
 - `GET /api/settlements/group/:groupId` - Get group settlements
 - `POST /api/settlements/mark-paid` - Mark settlement as paid
 - `GET /api/settlements/all` - Get all settlements
 
 ### Dashboard
+
 - `GET /api/dashboard/summary` - Get dashboard summary
 
 ### Reminders
+
 - `POST /api/reminders/generate` - Generate WhatsApp reminder
 
 ## Development Mode
 
 ### Mock OTP
+
 In development mode (`OTP_PROVIDER=mock`), OTP codes are logged to the console:
+
 ```
 📱 Mock OTP for +919876543210: 123456
 ```
+
 The OTP is also returned in the API response for testing.
 
 ## Production Deployment
 
 ### Frontend (Vercel)
+
 1. Push code to GitHub
 2. Import project in Vercel
 3. Set environment variable:
@@ -202,6 +223,7 @@ The OTP is also returned in the API response for testing.
 4. Deploy
 
 ### Backend (Render)
+
 1. Create new Web Service
 2. Connect GitHub repository
 3. Configure:
@@ -211,6 +233,7 @@ The OTP is also returned in the API response for testing.
 5. Deploy
 
 ### Database (Supabase)
+
 - Already hosted on Supabase
 - Ensure Row Level Security is configured for production
 
