@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Send, Trash2, Clock, ChevronDown, ChevronUp } from 'lu
 import { format } from 'date-fns';
 import api from '../services/api';
 import ReminderConfirmModal from '../components/ReminderConfirmModal';
+import CategoryBadge from '../components/CategoryBadge';
 
 const ContactDetailPage = () => {
     const { id } = useParams();
@@ -267,6 +268,9 @@ const ContactDetailPage = () => {
                                     <p className="text-xs text-gray-500">
                                         {format(new Date(txn.date), 'MMM d, yyyy')}
                                     </p>
+                                    {txn.category && txn.category !== 'other' && (
+                                        <CategoryBadge category={txn.category} size="sm" />
+                                    )}
                                 </div>
                             ))}
                         </div>

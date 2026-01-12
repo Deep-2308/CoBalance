@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Users as UsersIcon, User } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
+import SearchBar from '../components/SearchBar';
 import api from '../services/api';
 
 const GroupsPage = () => {
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         fetchGroups();
@@ -28,10 +30,22 @@ const GroupsPage = () => {
         }
     };
 
+    // Client-side filtering for groups (list is typically small)
+    const filteredGroups = groups.filter(group =>
+        group.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
-                <h1 className="text-2xl font-bold text-gray-900">Groups</h1>
+                <h1 className="text-2xl font-bold text-gray-900 mb-3">Groups</h1>
+                
+                {/* Search */}
+                <SearchBar
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    placeholder="Search groups..."
+                />
             </div>
 
             <div className="page-container">
@@ -39,9 +53,9 @@ const GroupsPage = () => {
                     <div className="flex items-center justify-center py-12">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
                     </div>
-                ) : groups.length > 0 ? (
+                ) : filteredGroups.length > 0 ? (
                     <div className="space-y-3">
-                        {groups.map((group) => (
+                        {filteredGroups.map((group) => (
                             <Link
                                 key={group.id}
                                 to={`/groups/${group.id}`}
@@ -67,8 +81,14 @@ const GroupsPage = () => {
                 ) : (
                     <div className="card text-center py-12 mt-6">
                         <UsersIcon className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                        <p className="text-gray-500 font-medium">No groups yet</p>
-                        <p className="text-sm text-gray-400 mt-1">Create a group to track shared expenses</p>
+                        <p className="text-gray-500 font-medium">
+                            {searchTerm ? 'No groups match your search' : 'No groups yet'}
+                        </p>
+                        <p className="text-sm text-gray-400 mt-1">
+                            {searchTerm 
+                                ? 'Try a different search term' 
+                                : 'Create a group to track shared expenses'}
+                        </p>
                     </div>
                 )}
             </div>

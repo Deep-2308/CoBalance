@@ -1,4 +1,5 @@
 import supabase from '../utils/supabase.js';
+import { sanitizeCategory } from '../utils/categories.js';
 
 // Create group
 export const createGroup = async (req, res) => {
@@ -97,11 +98,12 @@ export const getGroups = async (req, res) => {
     }
 };
 
-// Get group details
+// Get group details with expense filtering
 export const getGroupDetail = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user.userId;
+        const { dateFrom, dateTo, minAmount, maxAmount, sortBy } = req.query;
 
         if (supabase) {
             // Verify user is member
@@ -129,9 +131,9 @@ export const getGroupDetail = async (req, res) => {
             const { data: memberRecords, error: membersError } = await supabase
                 .from('group_members')
                 .select(`
-          user_id,
-          users (id, name, mobile)
-        `)
+                    user_id,
+                    users (id, name, mobile)
+                `)
                 .eq('group_id', id);
 
             if (membersError) throw membersError;
@@ -139,18 +141,64 @@ export const getGroupDetail = async (req, res) => {
             const members = memberRecords.map(m => m.users);
 
             // Get expenses
-            const { data: expenses, error: expensesError } = await supabase
+            const { data: expensesData, error: expensesError } = await supabase
                 .from('expenses')
                 .select(`
-          *,
-          payer:paid_by (id, name, mobile)
-        `)
+                    *,
+                    payer:paid_by (id, name, mobile)
+                `)
                 .eq('group_id', id)
                 .order('date', { ascending: false });
 
             if (expensesError) throw expensesError;
 
-            res.json({ group, members, expenses });
+            // Apply filters
+            let filteredExpenses = expensesData || [];
+
+            // Date range filter
+            if (dateFrom) {
+                filteredExpenses = filteredExpenses.filter(exp =>
+                    new Date(exp.date) >= new Date(dateFrom)
+                );
+            }
+            if (dateTo) {
+                filteredExpenses = filteredExpenses.filter(exp =>
+                    new Date(exp.date) <= new Date(dateTo)
+                );
+            }
+
+            // Amount range filter
+            if (minAmount) {
+                const min = parseFloat(minAmount);
+                filteredExpenses = filteredExpenses.filter(exp =>
+                    parseFloat(exp.amount) >= min
+                );
+            }
+            if (maxAmount) {
+                const max = parseFloat(maxAmount);
+                filteredExpenses = filteredExpenses.filter(exp =>
+                    parseFloat(exp.amount) <= max
+                );
+            }
+
+            // Apply sorting
+            switch (sortBy) {
+                case 'oldest':
+                    filteredExpenses.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    break;
+                case 'amount_high':
+                    filteredExpenses.sort((a, b) => parseFloat(b.amount) - parseFloat(a.amount));
+                    break;
+                case 'amount_low':
+                    filteredExpenses.sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount));
+                    break;
+                case 'newest':
+                default:
+                    filteredExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    break;
+            }
+
+            res.json({ group, members, expenses: filteredExpenses });
         } else {
             res.json({
                 group: { id, name: 'Mock Group' },
@@ -390,7 +438,7 @@ export const removeMember = async (req, res) => {
 // Add expense
 export const addExpense = async (req, res) => {
     try {
-        const { group_id, description, amount, paid_by, split_between, date } = req.body;
+        const { group_id, description, amount, paid_by, split_between, date, category } = req.body;
 
         if (!group_id || !description || !amount || !paid_by || !split_between) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -404,6 +452,9 @@ export const addExpense = async (req, res) => {
             return res.status(400).json({ error: 'Split between must be a non-empty array' });
         }
 
+        // Sanitize category (defaults to 'other' if invalid or not provided)
+        const validCategory = sanitizeCategory(category);
+
         if (supabase) {
             const { data: expense, error } = await supabase
                 .from('expenses')
@@ -413,7 +464,8 @@ export const addExpense = async (req, res) => {
                     amount: parseFloat(amount),
                     paid_by,
                     split_between,
-                    date: date || new Date().toISOString().split('T')[0]
+                    date: date || new Date().toISOString().split('T')[0],
+                    category: validCategory
                 })
                 .select()
                 .single();
@@ -423,7 +475,7 @@ export const addExpense = async (req, res) => {
         } else {
             res.status(201).json({
                 success: true,
-                expense: { id: 'mock-expense-id', group_id, description, amount, paid_by, split_between }
+                expense: { id: 'mock-expense-id', group_id, description, amount, paid_by, split_between, category: validCategory }
             });
         }
     } catch (error) {

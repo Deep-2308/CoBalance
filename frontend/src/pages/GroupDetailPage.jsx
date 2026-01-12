@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Plus, User, Trash2, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import api from '../services/api';
 import AddMemberModal from '../components/AddMemberModal';
 import ReminderConfirmModal from '../components/ReminderConfirmModal';
+import FilterPanel from '../components/FilterPanel';
+import SortDropdown from '../components/SortDropdown';
+import CategoryBadge from '../components/CategoryBadge';
 
 const GroupDetailPage = () => {
     const { id } = useParams();
@@ -22,14 +25,28 @@ const GroupDetailPage = () => {
     const [showReminderModal, setShowReminderModal] = useState(false);
     const [selectedMember, setSelectedMember] = useState(null);
 
-    useEffect(() => {
-        fetchGroupDetail();
-        fetchBalances();
-    }, [id]);
+    // Filter and Sort State
+    const [filters, setFilters] = useState({
+        dateFrom: '',
+        dateTo: '',
+        minAmount: '',
+        maxAmount: ''
+    });
+    const [sortBy, setSortBy] = useState('newest');
 
-    const fetchGroupDetail = async () => {
+    const fetchGroupDetail = useCallback(async () => {
         try {
-            const response = await api.get(`/groups/${id}`);
+            // Build query params for expense filtering
+            const params = new URLSearchParams();
+            if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
+            if (filters.dateTo) params.append('dateTo', filters.dateTo);
+            if (filters.minAmount) params.append('minAmount', filters.minAmount);
+            if (filters.maxAmount) params.append('maxAmount', filters.maxAmount);
+            if (sortBy) params.append('sortBy', sortBy);
+
+            const url = `/groups/${id}${params.toString() ? '?' + params.toString() : ''}`;
+            const response = await api.get(url);
+            
             setGroup(response.data.group);
             setMembers(response.data.members);
             setExpenses(response.data.expenses);
@@ -38,7 +55,7 @@ const GroupDetailPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id, filters, sortBy]);
 
     const fetchBalances = async () => {
         try {
@@ -49,8 +66,12 @@ const GroupDetailPage = () => {
         }
     };
 
+    useEffect(() => {
+        fetchGroupDetail();
+        fetchBalances();
+    }, [fetchGroupDetail]);
+
     const handleMemberAdded = async () => {
-        // Refresh group data
         await fetchGroupDetail();
         await fetchBalances();
     };
@@ -79,11 +100,8 @@ const GroupDetailPage = () => {
         return 'text-gray-500';
     };
 
-    // Check if this member owes you money (negative balance means they owe)
-    // In group context, negative balance for the member means they owe money to the group
     const canSendReminder = (memberBalance) => {
         const bal = parseFloat(memberBalance.balance);
-        // Negative balance means this member owes money
         return bal < 0;
     };
 
@@ -94,6 +112,9 @@ const GroupDetailPage = () => {
             </div>
         );
     }
+
+    const hasActiveFilters = filters.dateFrom || filters.dateTo || 
+        filters.minAmount || filters.maxAmount;
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
@@ -179,9 +200,21 @@ const GroupDetailPage = () => {
                     </Link>
                 </div>
 
-                {/* Expenses */}
+                {/* Expenses Section */}
                 <div>
-                    <h2 className="text-lg font-bold text-gray-900 mb-3">Expenses</h2>
+                    <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-lg font-bold text-gray-900">Expenses</h2>
+                        <SortDropdown value={sortBy} onChange={setSortBy} />
+                    </div>
+
+                    {/* Filter Panel */}
+                    <FilterPanel
+                        filters={filters}
+                        onFilterChange={setFilters}
+                        showBalanceType={false}
+                        className="mb-4"
+                    />
+
                     {expenses.length > 0 ? (
                         <div className="space-y-2">
                             {expenses.map((expense) => (
@@ -200,12 +233,20 @@ const GroupDetailPage = () => {
                                     <p className="text-xs text-gray-500">
                                         {format(new Date(expense.date), 'MMM d, yyyy')}
                                     </p>
+                                    {expense.category && expense.category !== 'other' && (
+                                        <CategoryBadge category={expense.category} size="sm" />
+                                    )}
                                 </div>
                             ))}
                         </div>
                     ) : (
                         <div className="card text-center py-8">
-                            <p className="text-gray-500">No expenses yet</p>
+                            <p className="text-gray-500">
+                                {hasActiveFilters ? 'No expenses match your filters' : 'No expenses yet'}
+                            </p>
+                            {hasActiveFilters && (
+                                <p className="text-sm text-gray-400 mt-1">Try adjusting your filters</p>
+                            )}
                         </div>
                     )}
                 </div>
@@ -232,9 +273,7 @@ const GroupDetailPage = () => {
                     amount={Math.abs(parseFloat(selectedMember.balance))}
                     groupId={id}
                     targetUserId={selectedMember.user_id}
-                    onReminderSent={() => {
-                        // Optionally refresh balances
-                    }}
+                    onReminderSent={() => {}}
                 />
             )}
         </div>

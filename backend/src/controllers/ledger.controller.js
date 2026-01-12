@@ -1,4 +1,5 @@
 import supabase from '../utils/supabase.js';
+import { sanitizeCategory } from '../utils/categories.js';
 
 // Create contact
 export const createContact = async (req, res) => {
@@ -32,27 +33,48 @@ export const createContact = async (req, res) => {
     }
 };
 
-// Get all contacts for user
+// Get all contacts for user with filtering and sorting
 export const getContacts = async (req, res) => {
     try {
         const userId = req.user.userId;
+        const { search, dateFrom, dateTo, minAmount, maxAmount, balanceType, sortBy } = req.query;
 
         if (supabase) {
-            // Get contacts with their balances
-            const { data: contacts, error } = await supabase
+            // Build query for contacts with transactions
+            let query = supabase
                 .from('contacts')
                 .select(`
-          *,
-          transactions (amount, transaction_type)
-        `)
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false });
+                    *,
+                    transactions (id, amount, transaction_type, date)
+                `)
+                .eq('user_id', userId);
+
+            // Apply search filter on contact name
+            if (search && search.trim()) {
+                query = query.ilike('name', `%${search.trim()}%`);
+            }
+
+            const { data: contacts, error } = await query;
 
             if (error) throw error;
 
-            // Calculate balance for each contact
-            const contactsWithBalance = contacts.map(contact => {
-                const balance = contact.transactions.reduce((acc, txn) => {
+            // Calculate balance for each contact and apply filters
+            let contactsWithBalance = contacts.map(contact => {
+                // Filter transactions by date range if specified
+                let filteredTransactions = contact.transactions;
+                
+                if (dateFrom) {
+                    filteredTransactions = filteredTransactions.filter(txn => 
+                        new Date(txn.date) >= new Date(dateFrom)
+                    );
+                }
+                if (dateTo) {
+                    filteredTransactions = filteredTransactions.filter(txn => 
+                        new Date(txn.date) <= new Date(dateTo)
+                    );
+                }
+
+                const balance = filteredTransactions.reduce((acc, txn) => {
                     if (txn.transaction_type === 'credit') {
                         return acc + parseFloat(txn.amount);
                     } else {
@@ -69,6 +91,40 @@ export const getContacts = async (req, res) => {
                     created_at: contact.created_at
                 };
             });
+
+            // Apply balance type filter
+            if (balanceType === 'get') {
+                contactsWithBalance = contactsWithBalance.filter(c => parseFloat(c.balance) > 0);
+            } else if (balanceType === 'owe') {
+                contactsWithBalance = contactsWithBalance.filter(c => parseFloat(c.balance) < 0);
+            }
+
+            // Apply amount range filter (absolute balance)
+            if (minAmount) {
+                const min = parseFloat(minAmount);
+                contactsWithBalance = contactsWithBalance.filter(c => Math.abs(parseFloat(c.balance)) >= min);
+            }
+            if (maxAmount) {
+                const max = parseFloat(maxAmount);
+                contactsWithBalance = contactsWithBalance.filter(c => Math.abs(parseFloat(c.balance)) <= max);
+            }
+
+            // Apply sorting
+            switch (sortBy) {
+                case 'oldest':
+                    contactsWithBalance.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                    break;
+                case 'amount_high':
+                    contactsWithBalance.sort((a, b) => Math.abs(parseFloat(b.balance)) - Math.abs(parseFloat(a.balance)));
+                    break;
+                case 'amount_low':
+                    contactsWithBalance.sort((a, b) => Math.abs(parseFloat(a.balance)) - Math.abs(parseFloat(b.balance)));
+                    break;
+                case 'newest':
+                default:
+                    contactsWithBalance.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    break;
+            }
 
             res.json({ contacts: contactsWithBalance });
         } else {
@@ -195,7 +251,7 @@ export const deleteContact = async (req, res) => {
 // Add transaction
 export const addTransaction = async (req, res) => {
     try {
-        const { contact_id, amount, transaction_type, note, date } = req.body;
+        const { contact_id, amount, transaction_type, note, date, category } = req.body;
 
         if (!contact_id || !amount || !transaction_type) {
             return res.status(400).json({ error: 'Contact, amount, and type required' });
@@ -209,6 +265,9 @@ export const addTransaction = async (req, res) => {
             return res.status(400).json({ error: 'Amount must be positive' });
         }
 
+        // Sanitize category (defaults to 'other' if invalid or not provided)
+        const validCategory = sanitizeCategory(category);
+
         if (supabase) {
             const { data: transaction, error } = await supabase
                 .from('transactions')
@@ -217,7 +276,8 @@ export const addTransaction = async (req, res) => {
                     amount: parseFloat(amount),
                     transaction_type,
                     note,
-                    date: date || new Date().toISOString().split('T')[0]
+                    date: date || new Date().toISOString().split('T')[0],
+                    category: validCategory
                 })
                 .select()
                 .single();
@@ -227,7 +287,7 @@ export const addTransaction = async (req, res) => {
         } else {
             res.status(201).json({
                 success: true,
-                transaction: { id: 'mock-txn-id', contact_id, amount, transaction_type, note, date }
+                transaction: { id: 'mock-txn-id', contact_id, amount, transaction_type, note, date, category: validCategory }
             });
         }
     } catch (error) {

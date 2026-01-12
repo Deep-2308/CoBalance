@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Save, Plus } from 'lucide-react';
 import api from '../services/api';
 import QuickAddContactModal from '../components/QuickAddContactModal';
+import CategorySelector from '../components/CategorySelector';
 
 const AddTransactionPage = () => {
     const [searchParams] = useSearchParams();
@@ -12,6 +13,7 @@ const AddTransactionPage = () => {
     const [transactionType, setTransactionType] = useState('credit');
     const [note, setNote] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [category, setCategory] = useState('other');
     const [loading, setLoading] = useState(false);
     const [showQuickAdd, setShowQuickAdd] = useState(false);
     const navigate = useNavigate();
@@ -61,6 +63,7 @@ const AddTransactionPage = () => {
                 transaction_type: transactionType,
                 note,
                 date,
+                category,
             });
 
             if (searchParams.get('contactId')) {
@@ -188,6 +191,12 @@ const AddTransactionPage = () => {
                         rows="2"
                     />
                 </div>
+
+                <CategorySelector
+                    value={category}
+                    onChange={setCategory}
+                    className="mb-4"
+                />
 
                 <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">

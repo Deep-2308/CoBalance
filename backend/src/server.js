@@ -14,6 +14,8 @@ import remindersRoutes from './routes/reminders.routes.js';
 import contactProfileRoutes from './routes/contact-profile.routes.js';
 import profileRoutes from './routes/profile.routes.js';
 import securityRoutes from './routes/security.routes.js';
+import searchRoutes from './routes/search.routes.js';
+import categoriesRoutes from './routes/categories.routes.js';
 
 dotenv.config();
 
@@ -45,6 +47,8 @@ app.use('/api/contacts', contactProfileRoutes);
 app.use('/api/reminders', remindersRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/security', securityRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/categories', categoriesRoutes);
 
 // 404 handler
 app.use((req, res) => {

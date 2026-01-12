@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Users, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import CategorySelector from '../components/CategorySelector';
 
 const AddExpensePage = () => {
     const { id: groupId } = useParams();
@@ -16,6 +17,7 @@ const AddExpensePage = () => {
     const [members, setMembers] = useState([]);
     const [selectedMembers, setSelectedMembers] = useState({});
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [category, setCategory] = useState('other');
     const [loading, setLoading] = useState(false);
     const [showPaidByModal, setShowPaidByModal] = useState(false);
 
@@ -101,7 +103,8 @@ const AddExpensePage = () => {
                 amount: splitCalculation.totalAmount.toFixed(2),
                 paid_by: paidBy,
                 split_between: splits,
-                date
+                date,
+                category
             };
 
             await api.post(`/groups/${groupId}/expenses`, payload);
@@ -143,6 +146,13 @@ const AddExpensePage = () => {
                         required
                     />
                 </div>
+
+                {/* Category Selector */}
+                <CategorySelector
+                    value={category}
+                    onChange={setCategory}
+                    className="mb-6"
+                />
 
                 {/* Amount - Big and Bold */}
                 <div className="mb-6">

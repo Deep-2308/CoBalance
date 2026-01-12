@@ -1,21 +1,55 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, User } from 'lucide-react';
+import { Plus, User } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
+import SearchBar from '../components/SearchBar';
+import FilterPanel from '../components/FilterPanel';
+import SortDropdown from '../components/SortDropdown';
+import CategorySummary from '../components/CategorySummary';
 import api from '../services/api';
 
 const LedgerPage = () => {
     const [contacts, setContacts] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
+    
+    // Search and filter state
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filters, setFilters] = useState({
+        dateFrom: '',
+        dateTo: '',
+        minAmount: '',
+        maxAmount: '',
+        balanceType: ''
+    });
+    const [sortBy, setSortBy] = useState('newest');
 
+    // Debounce search for better performance
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    
     useEffect(() => {
-        fetchContacts();
-    }, []);
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
-    const fetchContacts = async () => {
+    const fetchContacts = useCallback(async () => {
         try {
-            const response = await api.get('/ledger/contacts');
+            setLoading(true);
+            
+            // Build query params
+            const params = new URLSearchParams();
+            if (debouncedSearch) params.append('search', debouncedSearch);
+            if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
+            if (filters.dateTo) params.append('dateTo', filters.dateTo);
+            if (filters.minAmount) params.append('minAmount', filters.minAmount);
+            if (filters.maxAmount) params.append('maxAmount', filters.maxAmount);
+            if (filters.balanceType) params.append('balanceType', filters.balanceType);
+            if (sortBy) params.append('sortBy', sortBy);
+
+            const url = `/ledger/contacts${params.toString() ? '?' + params.toString() : ''}`;
+            const response = await api.get(url);
+            
             if (response.data.mock || !response.data.contacts) {
                 setContacts([]);
             } else {
@@ -27,11 +61,11 @@ const LedgerPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [debouncedSearch, filters, sortBy]);
 
-    const filteredContacts = contacts.filter((contact) =>
-        contact.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    useEffect(() => {
+        fetchContacts();
+    }, [fetchContacts]);
 
     const getBalanceColor = (balance) => {
         const bal = parseFloat(balance);
@@ -51,29 +85,38 @@ const LedgerPage = () => {
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
-                <h1 className="text-2xl font-bold text-gray-900 mb-3">Ledger</h1>
+                <div className="flex items-center justify-between mb-3">
+                    <h1 className="text-2xl font-bold text-gray-900">Ledger</h1>
+                    <SortDropdown value={sortBy} onChange={setSortBy} />
+                </div>
 
                 {/* Search */}
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search contacts..."
-                        className="input pl-10"
-                    />
-                </div>
+                <SearchBar
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    placeholder="Search contacts..."
+                />
             </div>
 
             <div className="page-container">
+                {/* Filter Panel */}
+                <FilterPanel
+                    filters={filters}
+                    onFilterChange={setFilters}
+                    showBalanceType={true}
+                    className="mb-4"
+                />
+
+                {/* Category Summary */}
+                <CategorySummary />
+
                 {loading ? (
                     <div className="flex items-center justify-center py-12">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
                     </div>
-                ) : filteredContacts.length > 0 ? (
+                ) : contacts.length > 0 ? (
                     <div className="space-y-3">
-                        {filteredContacts.map((contact) => (
+                        {contacts.map((contact) => (
                             <Link
                                 key={contact.id}
                                 to={`/ledger/contact/${contact.id}`}
@@ -102,8 +145,16 @@ const LedgerPage = () => {
                 ) : (
                     <div className="card text-center py-12 mt-6">
                         <User className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                        <p className="text-gray-500 font-medium">No contacts yet</p>
-                        <p className="text-sm text-gray-400 mt-1">Add a contact to start tracking</p>
+                        <p className="text-gray-500 font-medium">
+                            {debouncedSearch || Object.values(filters).some(v => v) 
+                                ? 'No contacts match your filters' 
+                                : 'No contacts yet'}
+                        </p>
+                        <p className="text-sm text-gray-400 mt-1">
+                            {debouncedSearch || Object.values(filters).some(v => v)
+                                ? 'Try adjusting your search or filters'
+                                : 'Add a contact to start tracking'}
+                        </p>
                     </div>
                 )}
             </div>
