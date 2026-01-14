@@ -33,9 +33,18 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({ message: 'CoBalance API is running' });
+});
+
+// Health check endpoint
 app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    res.json({
+        status: 'ok',
+        service: 'CoBalance API',
+        time: new Date().toISOString()
+    });
 });
 
 // API Routes
