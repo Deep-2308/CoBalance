@@ -16,6 +16,7 @@ import profileRoutes from './routes/profile.routes.js';
 import securityRoutes from './routes/security.routes.js';
 import searchRoutes from './routes/search.routes.js';
 import categoriesRoutes from './routes/categories.routes.js';
+import reportsRoutes from './routes/reports.routes.js';
 
 dotenv.config();
 
@@ -49,6 +50,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/categories', categoriesRoutes);
+app.use('/api/reports', reportsRoutes);
 
 // 404 handler
 app.use((req, res) => {

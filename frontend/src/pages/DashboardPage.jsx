@@ -1,10 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { TrendingUp, TrendingDown, Wallet, Plus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { format } from 'date-fns';
 import BottomNav from '../components/BottomNav';
 import BalanceCard from '../components/BalanceCard';
+import MonthSelector from '../components/MonthSelector';
+import MonthlyChart from '../components/MonthlyChart';
+import MonthlySummaryCards from '../components/MonthlySummaryCards';
+import DailyTotalCard from '../components/DailyTotalCard';
 import api from '../services/api';
+import { getMonthlyReport } from '../services/reportsApi';
 import { useAuth } from '../context/AuthContext';
 
 const DashboardPage = () => {
@@ -12,9 +17,37 @@ const DashboardPage = () => {
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // Monthly report state
+    const now = new Date();
+    const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+    const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+    const [monthlyData, setMonthlyData] = useState(null);
+    const [monthLoading, setMonthLoading] = useState(true);
+
+    // Check if selected month is current month
+    const isCurrentMonth = selectedMonth === (now.getMonth() + 1) && selectedYear === now.getFullYear();
+
     useEffect(() => {
         fetchSummary();
     }, []);
+
+    // Fetch monthly report when month/year changes
+    const fetchMonthlyData = useCallback(async () => {
+        try {
+            setMonthLoading(true);
+            const data = await getMonthlyReport(selectedMonth, selectedYear);
+            setMonthlyData(data);
+        } catch (err) {
+            console.error('Failed to fetch monthly report:', err);
+            setMonthlyData(null);
+        } finally {
+            setMonthLoading(false);
+        }
+    }, [selectedMonth, selectedYear]);
+
+    useEffect(() => {
+        fetchMonthlyData();
+    }, [fetchMonthlyData]);
 
     const fetchSummary = async () => {
         try {
@@ -26,6 +59,17 @@ const DashboardPage = () => {
             setLoading(false);
         }
     };
+
+    const handleMonthChange = (month, year) => {
+        setSelectedMonth(month);
+        setSelectedYear(year);
+    };
+
+    // Filter activity by selected month
+    const filteredActivity = summary?.activity?.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate.getMonth() + 1 === selectedMonth && itemDate.getFullYear() === selectedYear;
+    }) || [];
 
     if (loading) {
         return (
@@ -39,13 +83,50 @@ const DashboardPage = () => {
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-6 rounded-b-3xl shadow-lg">
-                <h1 className="text-2xl font-bold mb-1">Welcome, {user?.name || 'User'}!</h1>
+                <div className="flex items-center justify-between mb-2">
+                    <h1 className="text-2xl font-bold">Welcome, {user?.name || 'User'}!</h1>
+                </div>
                 <p className="text-primary-100 text-sm">Here's your financial overview</p>
             </div>
 
             <div className="page-container">
+                {/* Month Selector */}
+                <div className="mt-4 mb-4">
+                    <MonthSelector
+                        selectedMonth={selectedMonth}
+                        selectedYear={selectedYear}
+                        onChange={handleMonthChange}
+                    />
+                </div>
+
+                {/* Today's Spending (only for current month) */}
+                {isCurrentMonth && monthlyData?.todaySpending && (
+                    <div className="mb-4">
+                        <DailyTotalCard
+                            amount={monthlyData.todaySpending}
+                            visible={true}
+                        />
+                    </div>
+                )}
+
+                {/* Monthly Summary Cards */}
+                <div className="mb-4">
+                    <MonthlySummaryCards
+                        totals={monthlyData?.monthlyTotals}
+                        loading={monthLoading}
+                    />
+                </div>
+
+                {/* Monthly Chart */}
+                <div className="mb-4">
+                    <MonthlyChart
+                        dailyTotals={monthlyData?.dailyTotals}
+                        loading={monthLoading}
+                    />
+                </div>
+
                 {/* Balance Cards */}
-                <div className="grid gap-4 mt-6 mb-6">
+                <div className="grid gap-4 mb-6">
                     <BalanceCard
                         title="Net Balance"
                         amount={summary?.netBalance || 0}
@@ -98,12 +179,14 @@ const DashboardPage = () => {
                     </div>
                 </div>
 
-                {/* Recent Activity */}
+                {/* Recent Activity (filtered by month) */}
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-3">Recent Activity</h2>
-                    {summary?.activity && summary.activity.length > 0 ? (
+                    <h2 className="text-lg font-bold text-gray-900 mb-3">
+                        Activity ({new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'short' })} {selectedYear})
+                    </h2>
+                    {filteredActivity.length > 0 ? (
                         <div className="space-y-2">
-                            {summary.activity.slice(0, 10).map((item, index) => (
+                            {filteredActivity.slice(0, 10).map((item, index) => (
                                 <div key={index} className="card hover:bg-gray-50 transition-colors">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
@@ -131,7 +214,7 @@ const DashboardPage = () => {
                         </div>
                     ) : (
                         <div className="card text-center py-8">
-                            <p className="text-gray-500">No recent activity</p>
+                            <p className="text-gray-500">No activity this month</p>
                             <p className="text-sm text-gray-400 mt-1">Start by adding a transaction or expense</p>
                         </div>
                     )}

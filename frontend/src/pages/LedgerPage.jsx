@@ -6,7 +6,11 @@ import SearchBar from '../components/SearchBar';
 import FilterPanel from '../components/FilterPanel';
 import SortDropdown from '../components/SortDropdown';
 import CategorySummary from '../components/CategorySummary';
+import MonthSelector from '../components/MonthSelector';
+import MonthlyChart from '../components/MonthlyChart';
+import MonthlySummaryCards from '../components/MonthlySummaryCards';
 import api from '../services/api';
+import { getMonthlyReport } from '../services/reportsApi';
 
 const LedgerPage = () => {
     const [contacts, setContacts] = useState([]);
@@ -23,6 +27,13 @@ const LedgerPage = () => {
     });
     const [sortBy, setSortBy] = useState('newest');
 
+    // Monthly report state
+    const now = new Date();
+    const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+    const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+    const [monthlyData, setMonthlyData] = useState(null);
+    const [monthLoading, setMonthLoading] = useState(true);
+
     // Debounce search for better performance
     const [debouncedSearch, setDebouncedSearch] = useState('');
     
@@ -32,6 +43,36 @@ const LedgerPage = () => {
         }, 300);
         return () => clearTimeout(timer);
     }, [searchTerm]);
+
+    // Update date filters when month changes
+    useEffect(() => {
+        const startDate = new Date(selectedYear, selectedMonth - 1, 1);
+        const endDate = new Date(selectedYear, selectedMonth, 0);
+        
+        setFilters(prev => ({
+            ...prev,
+            dateFrom: startDate.toISOString().split('T')[0],
+            dateTo: endDate.toISOString().split('T')[0]
+        }));
+    }, [selectedMonth, selectedYear]);
+
+    // Fetch monthly report when month/year changes
+    const fetchMonthlyData = useCallback(async () => {
+        try {
+            setMonthLoading(true);
+            const data = await getMonthlyReport(selectedMonth, selectedYear);
+            setMonthlyData(data);
+        } catch (err) {
+            console.error('Failed to fetch monthly report:', err);
+            setMonthlyData(null);
+        } finally {
+            setMonthLoading(false);
+        }
+    }, [selectedMonth, selectedYear]);
+
+    useEffect(() => {
+        fetchMonthlyData();
+    }, [fetchMonthlyData]);
 
     const fetchContacts = useCallback(async () => {
         try {
@@ -67,6 +108,11 @@ const LedgerPage = () => {
         fetchContacts();
     }, [fetchContacts]);
 
+    const handleMonthChange = (month, year) => {
+        setSelectedMonth(month);
+        setSelectedYear(year);
+    };
+
     const getBalanceColor = (balance) => {
         const bal = parseFloat(balance);
         if (bal > 0) return 'text-green-600';
@@ -90,6 +136,15 @@ const LedgerPage = () => {
                     <SortDropdown value={sortBy} onChange={setSortBy} />
                 </div>
 
+                {/* Month Selector */}
+                <div className="mb-3">
+                    <MonthSelector
+                        selectedMonth={selectedMonth}
+                        selectedYear={selectedYear}
+                        onChange={handleMonthChange}
+                    />
+                </div>
+
                 {/* Search */}
                 <SearchBar
                     value={searchTerm}
@@ -99,6 +154,22 @@ const LedgerPage = () => {
             </div>
 
             <div className="page-container">
+                {/* Monthly Summary Cards */}
+                <div className="mb-4">
+                    <MonthlySummaryCards
+                        totals={monthlyData?.monthlyTotals}
+                        loading={monthLoading}
+                    />
+                </div>
+
+                {/* Monthly Chart */}
+                <div className="mb-4">
+                    <MonthlyChart
+                        dailyTotals={monthlyData?.dailyTotals}
+                        loading={monthLoading}
+                    />
+                </div>
+
                 {/* Filter Panel */}
                 <FilterPanel
                     filters={filters}
