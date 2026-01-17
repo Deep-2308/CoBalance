@@ -11,6 +11,7 @@ import MonthlyChart from '../components/MonthlyChart';
 import MonthlySummaryCards from '../components/MonthlySummaryCards';
 import api from '../services/api';
 import { getMonthlyReport } from '../services/reportsApi';
+import { getBalanceUIMeta } from '../utils/transactionSemantics';
 
 const LedgerPage = () => {
     const [contacts, setContacts] = useState([]);
@@ -114,17 +115,11 @@ const LedgerPage = () => {
     };
 
     const getBalanceColor = (balance) => {
-        const bal = parseFloat(balance);
-        if (bal > 0) return 'text-green-600';
-        if (bal < 0) return 'text-red-600';
-        return 'text-gray-500';
+        return getBalanceUIMeta(balance).colorClasses.text;
     };
 
     const getBalanceText = (balance) => {
-        const bal = parseFloat(balance);
-        if (bal > 0) return "You'll get";
-        if (bal < 0) return 'You owe';
-        return 'Settled';
+        return getBalanceUIMeta(balance).label;
     };
 
     return (

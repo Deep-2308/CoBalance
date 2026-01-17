@@ -96,7 +96,7 @@ export const getMonthlyReport = async (req, res) => {
                             type: txn.transaction_type,
                             note: txn.note,
                             date: txn.date,
-                            category: txn.category
+                            category: txn.category || 'other'
                         });
                     }
                 });

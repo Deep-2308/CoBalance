@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import api from '../services/api';
 import ReminderConfirmModal from '../components/ReminderConfirmModal';
 import CategoryBadge from '../components/CategoryBadge';
+import { getTransactionUIMeta, getBalanceUIMeta } from '../utils/transactionSemantics';
 
 const ContactDetailPage = () => {
     const { id } = useParams();
@@ -85,17 +86,13 @@ const ContactDetailPage = () => {
     };
 
     const getBalanceColor = (balance) => {
-        const bal = parseFloat(balance);
-        if (bal > 0) return 'text-green-600';
-        if (bal < 0) return 'text-red-600';
-        return 'text-gray-500';
+        const meta = getBalanceUIMeta(balance);
+        return meta.colorClasses.text;
     };
 
     const getBalanceText = (balance) => {
-        const bal = parseFloat(balance);
-        if (bal > 0) return "You'll get";
-        if (bal < 0) return 'You owe';
-        return 'Settled up';
+        const meta = getBalanceUIMeta(balance);
+        return meta.label;
     };
 
     // Check if reminder can be sent
@@ -241,24 +238,22 @@ const ContactDetailPage = () => {
                     <h2 className="text-lg font-bold text-gray-900 mb-3">Transaction History</h2>
                     {transactions.length > 0 ? (
                         <div className="space-y-2">
-                            {transactions.map((txn) => (
+                            {transactions.map((txn) => {
+                                const txnMeta = getTransactionUIMeta(txn.transaction_type);
+                                return (
                                 <div key={txn.id} className="card">
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
-                                            <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${txn.transaction_type === 'credit'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-red-100 text-red-700'
-                                                }`}>
-                                                {txn.transaction_type === 'credit' ? 'You gave' : 'You got'}
+                                            <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${txnMeta.colorClasses.bg} ${txnMeta.colorClasses.text}`}>
+                                                {txnMeta.label}
                                             </span>
                                             {txn.note && (
                                                 <p className="text-sm text-gray-600 mt-1">{txn.note}</p>
                                             )}
                                         </div>
                                         <div className="text-right">
-                                            <p className={`font-bold ${txn.transaction_type === 'credit' ? 'text-green-600' : 'text-red-600'
-                                                }`}>
-                                                {txn.transaction_type === 'credit' ? '+' : '-'}₹{parseFloat(txn.amount).toFixed(2)}
+                                            <p className={`font-bold ${txnMeta.colorClasses.textBold}`}>
+                                                {txnMeta.balanceEffect}₹{parseFloat(txn.amount).toFixed(2)}
                                             </p>
                                             <p className="text-xs text-gray-500">
                                                 Balance: ₹{parseFloat(txn.running_balance).toFixed(2)}
@@ -272,7 +267,7 @@ const ContactDetailPage = () => {
                                         <CategoryBadge category={txn.category} size="sm" />
                                     )}
                                 </div>
-                            ))}
+                                );})}
                         </div>
                     ) : (
                         <div className="card text-center py-8">
