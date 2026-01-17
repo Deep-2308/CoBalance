@@ -28,8 +28,18 @@ export const createContact = async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('Create contact error:', error);
-        res.status(500).json({ error: 'Failed to create contact' });
+        console.error('Create contact error:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+            userId: req.user?.userId,
+            body: req.body
+        });
+        res.status(500).json({ 
+            error: 'Failed to create contact',
+            details: error.message || 'Unknown error'
+        });
     }
 };
 

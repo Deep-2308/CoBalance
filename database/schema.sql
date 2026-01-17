@@ -56,12 +56,14 @@ CREATE TABLE transactions (
     transaction_type VARCHAR(10) NOT NULL, -- credit or debit
     note TEXT,
     date DATE DEFAULT CURRENT_DATE,
+    category VARCHAR(30) DEFAULT 'other',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_transactions_contact ON transactions(contact_id);
 CREATE INDEX idx_transactions_date ON transactions(date DESC);
+CREATE INDEX idx_transactions_category ON transactions(category);
 
 -- Groups table
 CREATE TABLE groups (
@@ -95,6 +97,7 @@ CREATE TABLE expenses (
     paid_by UUID NOT NULL REFERENCES users(id),
     split_between JSONB NOT NULL, -- Array of {user_id, amount} or {user_id, percentage}
     date DATE DEFAULT CURRENT_DATE,
+    category VARCHAR(30) DEFAULT 'other',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -102,6 +105,7 @@ CREATE TABLE expenses (
 CREATE INDEX idx_expenses_group ON expenses(group_id);
 CREATE INDEX idx_expenses_date ON expenses(date DESC);
 CREATE INDEX idx_expenses_paid_by ON expenses(paid_by);
+CREATE INDEX idx_expenses_category ON expenses(category);
 
 -- Settlements table (optional: track when settlements are marked as paid)
 CREATE TABLE settlements (
