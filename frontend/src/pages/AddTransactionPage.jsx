@@ -4,6 +4,7 @@ import { ArrowLeft, Save, Plus } from 'lucide-react';
 import api from '../services/api';
 import QuickAddContactModal from '../components/QuickAddContactModal';
 import CategorySelector from '../components/CategorySelector';
+import { getTransactionUIMeta, TRANSACTION_TYPES } from '../utils/transactionSemantics';
 
 const AddTransactionPage = () => {
     const [searchParams] = useSearchParams();
@@ -156,25 +157,25 @@ const AddTransactionPage = () => {
                     <div className="grid grid-cols-2 gap-3">
                         <button
                             type="button"
-                            onClick={() => setTransactionType('credit')}
+                            onClick={() => setTransactionType(TRANSACTION_TYPES.CREDIT)}
                             className={`p-4 rounded-lg border-2 transition-all ${transactionType === 'credit'
-                                    ? 'border-green-600 bg-green-50'
+                                    ? `${getTransactionUIMeta('credit').colorClasses.border} ${getTransactionUIMeta('credit').colorClasses.bgLight}`
                                     : 'border-gray-200'
                                 }`}
                         >
-                            <p className="font-medium text-gray-900">You Gave</p>
-                            <p className="text-xs text-gray-500 mt-1">Money given to contact (Credit)</p>
+                            <p className="font-medium text-gray-900">{getTransactionUIMeta('credit').action}</p>
+                            <p className="text-xs text-gray-500 mt-1">{getTransactionUIMeta('credit').description}</p>
                         </button>
                         <button
                             type="button"
-                            onClick={() => setTransactionType('debit')}
+                            onClick={() => setTransactionType(TRANSACTION_TYPES.DEBIT)}
                             className={`p-4 rounded-lg border-2 transition-all ${transactionType === 'debit'
-                                    ? 'border-red-600 bg-red-50'
+                                    ? `${getTransactionUIMeta('debit').colorClasses.border} ${getTransactionUIMeta('debit').colorClasses.bgLight}`
                                     : 'border-gray-200'
                                 }`}
                         >
-                            <p className="font-medium text-gray-900">You Got</p>
-                            <p className="text-xs text-gray-500 mt-1">Money received from contact (Debit)</p>
+                            <p className="font-medium text-gray-900">{getTransactionUIMeta('debit').action}</p>
+                            <p className="text-xs text-gray-500 mt-1">{getTransactionUIMeta('debit').description}</p>
                         </button>
                     </div>
                 </div>
