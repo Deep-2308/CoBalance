@@ -4,7 +4,7 @@
  * Single source of truth for transaction UI labels and colors.
  * Aligns with Khatabook mental model:
  * - CREDIT (You paid someone) → GREEN "You will get" → Contact owes YOU
- * - DEBIT (You received money) → RED "You gave" → YOU owe contact
+ * - DEBIT (You received money) → RED "You owe" → YOU owe contact
  */
 
 /**
@@ -31,7 +31,7 @@ export const getTransactionUIMeta = (type) => {
   }
   // debit
   return {
-    label: 'You gave',                // User-facing row label
+    label: 'You owe',                 // User-facing row label
     color: 'red',                     // Semantic color name
     action: 'You Received',           // Button/form label
     description: 'Money you received from contact',
@@ -77,5 +77,5 @@ export const getBalanceUIMeta = (balance) => {
 // Transaction type constants (matching backend)
 export const TRANSACTION_TYPES = {
   CREDIT: 'credit',   // You paid → You will get
-  DEBIT: 'debit',     // You received → You gave
+  DEBIT: 'debit',     // You received → You owe
 };
