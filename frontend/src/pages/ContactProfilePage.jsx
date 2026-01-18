@@ -234,7 +234,7 @@ const ContactProfilePage = () => {
                           {activity.transaction_type === 'credit' ? '+' : '-'}₹{activity.amount}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {activity.transaction_type === 'credit' ? 'You get' : 'You owe'}
+                          {activity.transaction_type === 'credit' ? 'You will get' : 'You owe'}
                         </p>
                       </div>
                     </div>
@@ -283,7 +283,7 @@ const ContactProfilePage = () => {
                                 {activity.description}
                               </p>
                               <p className="text-xs text-gray-500 mt-1">
-                                {activity.paid_by_you ? 'You paid' : `${profile.contact.name} paid`}
+                                {activity.paid_by_you ? 'Paid by You' : `Paid by ${profile.contact.name}`}
                                 {' • '}
                                 {new Date(activity.date).toLocaleDateString('en-IN', {
                                   day: 'numeric',

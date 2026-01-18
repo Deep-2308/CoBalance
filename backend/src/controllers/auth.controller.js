@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { randomUUID } from 'crypto';
 import supabase from '../utils/supabase.js';
 
 // Mock OTP storage (in-memory for development)
@@ -381,37 +382,23 @@ export const completeRegistration = async (req, res) => {
         // Create user
         let user;
         
-        // Use mock mode if OTP_PROVIDER is mock OR if supabase is not configured
-        if (process.env.OTP_PROVIDER === 'mock' || !supabase) {
-            // Mock user for development
-            user = {
-                id: 'mock-user-' + Date.now(),
-                email: identifierType === 'email' ? identifier : null,
-                mobile: identifierType === 'mobile' ? identifier : null,
-                name: name.trim(),
-                user_type: userType || 'individual',
-                language: language || 'en',
-                terms_accepted_at: new Date().toISOString()
-            };
-            console.log('📱 Mock user created:', user);
-        } else {
-            // Double-check user doesn't exist
-            const existingUser = await findUserByIdentifier(identifier, identifierType);
-            if (existingUser) {
-                return res.status(409).json({ 
-                    error: 'Account already exists. Please login instead.',
-                    code: 'USER_EXISTS'
-                });
-            }
-            
-            const userData = {
-                [identifierType]: identifier,
-                name: name.trim(),
-                user_type: userType || 'individual',
-                language: language || 'en',
-                terms_accepted_at: new Date().toISOString()
-            };
-            
+        // Double-check user doesn't exist
+        const existingUser = await findUserByIdentifier(identifier, identifierType);
+        if (existingUser) {
+            return res.status(409).json({ 
+                error: 'Account already exists. Please login instead.',
+                code: 'USER_EXISTS'
+            });
+        }
+        
+        // Only include essential fields that exist in database
+        const userData = {
+            [identifierType]: identifier,
+            name: name.trim()
+        };
+        
+        // Insert user into database if Supabase is available
+        if (supabase) {
             const { data: newUser, error } = await supabase
                 .from('users')
                 .insert(userData)
@@ -419,11 +406,30 @@ export const completeRegistration = async (req, res) => {
                 .single();
             
             if (error) {
-                console.error('Create user error:', error);
-                return res.status(500).json({ error: 'Failed to create account' });
+                console.error('Create user error:', {
+                    message: error.message,
+                    code: error.code,
+                    details: error.details,
+                    hint: error.hint,
+                    userData
+                });
+                return res.status(500).json({ 
+                    error: 'Failed to create account',
+                    details: error.message || 'Unknown database error'
+                });
             }
             
             user = newUser;
+            console.log('✅ User created in database:', user.id);
+        } else {
+            // No Supabase - use mock user for development only
+            user = {
+                id: randomUUID(),
+                email: identifierType === 'email' ? identifier : null,
+                mobile: identifierType === 'mobile' ? identifier : null,
+                ...userData
+            };
+            console.log('📱 Mock user created (no database):', user);
         }
         
         // Generate JWT token
@@ -439,11 +445,11 @@ export const completeRegistration = async (req, res) => {
             token,
             user: {
                 id: user.id,
-                email: user.email,
-                mobile: user.mobile,
+                email: user.email || null,
+                mobile: user.mobile || null,
                 name: user.name,
-                userType: user.user_type,
-                language: user.language
+                userType: user.user_type || 'individual',
+                language: user.language || 'en'
             }
         });
     } catch (error) {
