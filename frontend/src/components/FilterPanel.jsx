@@ -27,34 +27,34 @@ const FilterPanel = ({
         filters.minAmount || filters.maxAmount || filters.balanceType;
 
     return (
-        <div className={`bg-white rounded-lg border border-gray-200 ${className}`}>
+        <div className={`card p-0 overflow-hidden ${className}`}>
             {/* Toggle Header */}
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center justify-between p-4 hover:bg-surface-50 transition-colors"
             >
                 <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-gray-600" />
-                    <span className="font-medium text-gray-700">Filters</span>
+                    <Filter className="w-4 h-4 text-surface-500" />
+                    <span className="font-display font-semibold text-primary-900">Filters</span>
                     {hasActiveFilters && (
-                        <span className="bg-primary-100 text-primary-700 text-xs px-2 py-0.5 rounded-full">
+                        <span className="badge badge-success">
                             Active
                         </span>
                     )}
                 </div>
                 {isExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-gray-500" />
+                    <ChevronUp className="w-4 h-4 text-surface-400" />
                 ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                    <ChevronDown className="w-4 h-4 text-surface-400" />
                 )}
             </button>
 
             {/* Filter Controls */}
             {isExpanded && (
-                <div className="p-4 pt-2 border-t border-gray-100 space-y-4">
+                <div className="p-4 pt-2 border-t border-surface-100 space-y-4">
                     {/* Date Range */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-2">
+                        <label className="block text-sm font-medium text-surface-600 mb-2">
                             Date Range
                         </label>
                         <div className="grid grid-cols-2 gap-2">
@@ -77,28 +77,28 @@ const FilterPanel = ({
 
                     {/* Amount Range */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-2">
+                        <label className="block text-sm font-medium text-surface-600 mb-2">
                             Amount Range
                         </label>
                         <div className="grid grid-cols-2 gap-2">
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">₹</span>
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 text-sm">₹</span>
                                 <input
                                     type="number"
                                     value={filters.minAmount || ''}
                                     onChange={(e) => handleChange('minAmount', e.target.value)}
-                                    className="input text-sm pl-7"
+                                    className="input text-sm pl-8"
                                     placeholder="Min"
                                     min="0"
                                 />
                             </div>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">₹</span>
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 text-sm">₹</span>
                                 <input
                                     type="number"
                                     value={filters.maxAmount || ''}
                                     onChange={(e) => handleChange('maxAmount', e.target.value)}
-                                    className="input text-sm pl-7"
+                                    className="input text-sm pl-8"
                                     placeholder="Max"
                                     min="0"
                                 />
@@ -109,7 +109,7 @@ const FilterPanel = ({
                     {/* Balance Type (for Ledger) */}
                     {showBalanceType && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-2">
+                            <label className="block text-sm font-medium text-surface-600 mb-2">
                                 Balance Type
                             </label>
                             <select
@@ -128,7 +128,7 @@ const FilterPanel = ({
                     {hasActiveFilters && (
                         <button
                             onClick={handleReset}
-                            className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 font-medium"
+                            className="flex items-center gap-2 text-sm text-danger-600 hover:text-danger-700 font-medium transition-colors"
                         >
                             <X className="w-4 h-4" />
                             Reset Filters

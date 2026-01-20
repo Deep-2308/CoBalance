@@ -63,77 +63,91 @@ const ProfilePage = () => {
         service: 'Service Provider'
     };
 
+    // Get initials from name
+    const getInitials = (name) => {
+        return name
+            ?.split(' ')
+            .map(word => word[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2) || '?';
+    };
+
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            <div className="min-h-screen bg-surface-50 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="w-10 h-10 border-3 border-primary-200 border-t-primary-800 rounded-full animate-spin"></div>
+                    <p className="text-sm text-surface-500 font-medium">Loading...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen bg-surface-50 pb-24">
             {/* Header */}
-            <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-6 rounded-b-3xl">
-                <h1 className="text-2xl font-bold mb-1">Profile</h1>
-                <p className="text-primary-100 text-sm">Manage your account</p>
+            <div className="bg-gradient-warm text-white px-6 pt-8 pb-10 rounded-b-3xl shadow-soft-lg relative overflow-hidden">
+                <div className="absolute inset-0 opacity-5 bg-noise pointer-events-none" />
+                <div className="relative z-10">
+                    <h1 className="text-2xl font-display font-bold mb-1">Profile</h1>
+                    <p className="text-primary-300 text-sm">Manage your account</p>
+                </div>
             </div>
 
-            <div className="px-4 py-6 space-y-4">
+            <div className="px-4 py-6 -mt-4 space-y-4">
                 {error && (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-                        <p className="text-sm text-red-600">{error}</p>
+                    <div className="p-4 bg-danger-50 border border-danger-200 rounded-xl">
+                        <p className="text-sm text-danger-600">{error}</p>
                     </div>
                 )}
 
                 {/* Profile Card */}
-                <div className="bg-white rounded-2xl shadow-sm p-6">
+                <div className="card">
                     <div className="flex items-center gap-4 mb-6">
-                        <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center">
-                            <User className="w-8 h-8 text-primary-600" />
+                        <div className="avatar avatar-lg">
+                            {getInitials(profile?.name || user?.name)}
                         </div>
-                        <div className="flex-1">
-                            <h2 className="text-xl font-bold text-gray-900">
+                        <div className="flex-1 min-w-0">
+                            <h2 className="text-xl font-display font-bold text-primary-900 truncate">
                                 {profile?.name || user?.name || 'User'}
                             </h2>
-                            <p className="text-sm text-gray-500 capitalize">
+                            <p className="text-sm text-surface-500 capitalize">
                                 {profile?.userType || 'Individual'} Account
                             </p>
                         </div>
                         <Link 
                             to="/profile/edit"
-                            className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                            className="p-2.5 bg-surface-100 rounded-xl hover:bg-surface-200 transition-colors"
                         >
-                            <Edit3 className="w-5 h-5 text-gray-600" />
+                            <Edit3 className="w-5 h-5 text-surface-600" />
                         </Link>
                     </div>
 
                     {/* Contact Info */}
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-3 py-3 border-b border-gray-100">
-                            <Phone className="w-5 h-5 text-gray-400" />
-                            <div className="flex-1">
-                                <p className="text-xs text-gray-500">Phone (Verified)</p>
-                                <p className="text-gray-900 font-medium">{profile?.mobile || '—'}</p>
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-3 py-3 border-b border-surface-100">
+                            <Phone className="w-5 h-5 text-surface-400" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-2xs text-surface-400 uppercase tracking-wide">Phone</p>
+                                <p className="text-primary-900 font-medium truncate">{profile?.mobile || '—'}</p>
                             </div>
-                            <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                                Verified
-                            </span>
+                            <span className="badge badge-success">Verified</span>
                         </div>
 
-                        <div className="flex items-center gap-3 py-3 border-b border-gray-100">
-                            <Mail className="w-5 h-5 text-gray-400" />
-                            <div className="flex-1">
-                                <p className="text-xs text-gray-500">Email</p>
-                                <p className="text-gray-900">{profile?.email || 'Not added'}</p>
+                        <div className="flex items-center gap-3 py-3 border-b border-surface-100">
+                            <Mail className="w-5 h-5 text-surface-400" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-2xs text-surface-400 uppercase tracking-wide">Email</p>
+                                <p className="text-primary-900 truncate">{profile?.email || 'Not added'}</p>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-3 py-3">
-                            <Globe className="w-5 h-5 text-gray-400" />
-                            <div className="flex-1">
-                                <p className="text-xs text-gray-500">Preferred Language</p>
-                                <p className="text-gray-900">{languages[profile?.language] || 'English'}</p>
+                            <Globe className="w-5 h-5 text-surface-400" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-2xs text-surface-400 uppercase tracking-wide">Language</p>
+                                <p className="text-primary-900">{languages[profile?.language] || 'English'}</p>
                             </div>
                         </div>
                     </div>
@@ -141,88 +155,90 @@ const ProfilePage = () => {
 
                 {/* Business Info (Conditional) */}
                 {profile?.userType === 'business' && (
-                    <div className="bg-white rounded-2xl shadow-sm p-6">
+                    <div className="card">
                         <div className="flex items-center gap-3 mb-4">
-                            <Building2 className="w-5 h-5 text-primary-600" />
-                            <h3 className="font-bold text-gray-900">Business Information</h3>
+                            <div className="p-2 bg-accent-100 rounded-lg">
+                                <Building2 className="w-5 h-5 text-accent-600" />
+                            </div>
+                            <h3 className="font-display font-bold text-primary-900">Business Information</h3>
                         </div>
 
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                                <span className="text-gray-500 text-sm">Business Name</span>
-                                <span className="text-gray-900">{profile?.businessName || '—'}</span>
+                        <div className="space-y-1">
+                            <div className="flex items-center justify-between py-2.5 border-b border-surface-100">
+                                <span className="text-surface-500 text-sm">Business Name</span>
+                                <span className="text-primary-900 font-medium">{profile?.businessName || '—'}</span>
                             </div>
-                            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                                <span className="text-gray-500 text-sm">Category</span>
-                                <span className="text-gray-900">
+                            <div className="flex items-center justify-between py-2.5 border-b border-surface-100">
+                                <span className="text-surface-500 text-sm">Category</span>
+                                <span className="text-primary-900">
                                     {businessCategories[profile?.businessCategory] || '—'}
                                 </span>
                             </div>
-                            <div className="flex items-center justify-between py-2">
-                                <span className="text-gray-500 text-sm">Business Phone</span>
-                                <span className="text-gray-900">{profile?.businessPhone || '—'}</span>
+                            <div className="flex items-center justify-between py-2.5">
+                                <span className="text-surface-500 text-sm">Business Phone</span>
+                                <span className="text-primary-900">{profile?.businessPhone || '—'}</span>
                             </div>
                         </div>
                     </div>
                 )}
 
                 {/* App Preferences */}
-                <div className="bg-white rounded-2xl shadow-sm p-6">
+                <div className="card">
                     <div className="flex items-center gap-3 mb-4">
-                        <Bell className="w-5 h-5 text-primary-600" />
-                        <h3 className="font-bold text-gray-900">App Preferences</h3>
+                        <div className="p-2 bg-primary-100 rounded-lg">
+                            <Bell className="w-5 h-5 text-primary-700" />
+                        </div>
+                        <h3 className="font-display font-bold text-primary-900">App Preferences</h3>
                     </div>
 
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                            <div className="flex items-center gap-3">
-                                <MessageSquare className="w-4 h-4 text-gray-400" />
-                                <span className="text-gray-700">WhatsApp Reminders</span>
-                            </div>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                profile?.whatsappReminderEnabled 
-                                    ? 'bg-green-50 text-green-600' 
-                                    : 'bg-gray-100 text-gray-500'
-                            }`}>
-                                {profile?.whatsappReminderEnabled ? 'ON' : 'OFF'}
-                            </span>
+                    <div className="flex items-center justify-between py-2.5">
+                        <div className="flex items-center gap-3">
+                            <MessageSquare className="w-4 h-4 text-surface-400" />
+                            <span className="text-surface-700">WhatsApp Reminders</span>
                         </div>
+                        <span className={`badge ${
+                            profile?.whatsappReminderEnabled 
+                                ? 'badge-success' 
+                                : 'badge-neutral'
+                        }`}>
+                            {profile?.whatsappReminderEnabled ? 'ON' : 'OFF'}
+                        </span>
                     </div>
                 </div>
 
                 {/* Actions */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                     <Link 
                         to="/profile/edit"
-                        className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors"
+                        className="card card-interactive flex items-center justify-between"
                     >
                         <div className="flex items-center gap-3">
-                            <Edit3 className="w-5 h-5 text-gray-600" />
-                            <span className="font-medium text-gray-900">Edit Profile</span>
+                            <Edit3 className="w-5 h-5 text-surface-500" />
+                            <span className="font-medium text-primary-900">Edit Profile</span>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                        <ChevronRight className="w-5 h-5 text-surface-400" />
                     </Link>
 
                     <Link 
                         to="/profile/security"
-                        className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors"
+                        className="card card-interactive flex items-center justify-between"
                     >
                         <div className="flex items-center gap-3">
-                            <Shield className="w-5 h-5 text-gray-600" />
-                            <span className="font-medium text-gray-900">Security & Account</span>
+                            <Shield className="w-5 h-5 text-surface-500" />
+                            <span className="font-medium text-primary-900">Security & Account</span>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                        <ChevronRight className="w-5 h-5 text-surface-400" />
                     </Link>
 
                     <button 
                         onClick={handleLogout}
-                        className="w-full flex items-center justify-between p-4 bg-white rounded-xl shadow-sm hover:bg-red-50 transition-colors text-left"
+                        className="card card-interactive w-full flex items-center justify-between text-left hover:bg-danger-50 hover:border-danger-200"
                     >
                         <div className="flex items-center gap-3">
-                            <LogOut className="w-5 h-5 text-red-500" />
-                            <span className="font-medium text-red-600">Logout</span>
+                            <LogOut className="w-5 h-5 text-danger-500" />
+                            <span className="font-medium text-danger-600">Logout</span>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                        <ChevronRight className="w-5 h-5 text-surface-400" />
                     </button>
                 </div>
             </div>

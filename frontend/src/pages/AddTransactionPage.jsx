@@ -80,22 +80,30 @@ const AddTransactionPage = () => {
         }
     };
 
+    const creditMeta = getTransactionUIMeta('credit');
+    const debitMeta = getTransactionUIMeta('debit');
+
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
+        <div className="min-h-screen bg-surface-50">
+            {/* Header */}
+            <div className="page-header">
                 <div className="flex items-center gap-3">
-                    <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-lg">
-                        <ArrowLeft className="w-5 h-5" />
+                    <button 
+                        onClick={() => navigate(-1)} 
+                        className="p-2 -ml-2 hover:bg-surface-100 rounded-xl transition-colors"
+                    >
+                        <ArrowLeft className="w-5 h-5 text-surface-600" />
                     </button>
-                    <h1 className="text-xl font-bold text-gray-900">Add Transaction</h1>
+                    <h1 className="text-xl font-display font-bold text-primary-900">Add Transaction</h1>
                 </div>
             </div>
 
             <form onSubmit={handleSubmit} className="page-container">
+                {/* Contact Selection */}
                 {!searchParams.get('contactId') && (
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Select Contact *
+                    <div className="mb-5">
+                        <label className="block text-sm font-medium text-surface-600 mb-2">
+                            Select Contact
                         </label>
                         <div className="flex gap-2">
                             <select
@@ -112,36 +120,36 @@ const AddTransactionPage = () => {
                                 ))}
                             </select>
                             
-                            {/* Quick Add Button */}
                             <button
                                 type="button"
                                 onClick={() => setShowQuickAdd(true)}
-                                className="btn bg-green-600 hover:bg-green-700 text-white px-4 flex items-center gap-2 shadow-md"
+                                className="btn btn-accent px-4 flex items-center gap-2"
                                 title="Quick Add Contact"
                             >
                                 <Plus className="w-5 h-5" />
-                                <span className="hidden sm:inline">Add</span>
+                                <span className="hidden sm:inline">New</span>
                             </button>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                            Can't find your contact? Click the + button to add quickly
+                        <p className="text-xs text-surface-400 mt-2">
+                            Can't find your contact? Click + to add quickly
                         </p>
                     </div>
                 )}
 
-                <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Amount *
+                {/* Amount Input */}
+                <div className="mb-5">
+                    <label className="block text-sm font-medium text-surface-600 mb-2">
+                        Amount
                     </label>
                     <div className="relative">
-                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-2xl font-bold text-gray-900">
+                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-2xl font-display font-bold text-primary-900">
                             ₹
                         </span>
                         <input
                             type="number"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
-                            className="input pl-10 text-2xl font-bold"
+                            className="input input-lg pl-10"
                             placeholder="0.00"
                             step="0.01"
                             min="0"
@@ -150,57 +158,71 @@ const AddTransactionPage = () => {
                     </div>
                 </div>
 
-                <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Transaction Type *
+                {/* Transaction Type */}
+                <div className="mb-5">
+                    <label className="block text-sm font-medium text-surface-600 mb-2">
+                        Transaction Type
                     </label>
                     <div className="grid grid-cols-2 gap-3">
                         <button
                             type="button"
                             onClick={() => setTransactionType(TRANSACTION_TYPES.CREDIT)}
-                            className={`p-4 rounded-lg border-2 transition-all ${transactionType === 'credit'
-                                    ? `${getTransactionUIMeta('credit').colorClasses.border} ${getTransactionUIMeta('credit').colorClasses.bgLight}`
-                                    : 'border-gray-200'
-                                }`}
+                            className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                                transactionType === 'credit'
+                                    ? 'border-success-400 bg-success-50 shadow-soft'
+                                    : 'border-surface-200 bg-white hover:border-surface-300'
+                            }`}
                         >
-                            <p className="font-medium text-gray-900">{getTransactionUIMeta('credit').action}</p>
-                            <p className="text-xs text-gray-500 mt-1">{getTransactionUIMeta('credit').description}</p>
+                            <p className={`font-display font-semibold ${
+                                transactionType === 'credit' ? 'text-success-700' : 'text-primary-900'
+                            }`}>
+                                {creditMeta.action}
+                            </p>
+                            <p className="text-xs text-surface-500 mt-1">{creditMeta.description}</p>
                         </button>
                         <button
                             type="button"
                             onClick={() => setTransactionType(TRANSACTION_TYPES.DEBIT)}
-                            className={`p-4 rounded-lg border-2 transition-all ${transactionType === 'debit'
-                                    ? `${getTransactionUIMeta('debit').colorClasses.border} ${getTransactionUIMeta('debit').colorClasses.bgLight}`
-                                    : 'border-gray-200'
-                                }`}
+                            className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                                transactionType === 'debit'
+                                    ? 'border-danger-400 bg-danger-50 shadow-soft'
+                                    : 'border-surface-200 bg-white hover:border-surface-300'
+                            }`}
                         >
-                            <p className="font-medium text-gray-900">{getTransactionUIMeta('debit').action}</p>
-                            <p className="text-xs text-gray-500 mt-1">{getTransactionUIMeta('debit').description}</p>
+                            <p className={`font-display font-semibold ${
+                                transactionType === 'debit' ? 'text-danger-700' : 'text-primary-900'
+                            }`}>
+                                {debitMeta.action}
+                            </p>
+                            <p className="text-xs text-surface-500 mt-1">{debitMeta.description}</p>
                         </button>
                     </div>
                 </div>
 
-                <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Note (Optional)
+                {/* Note */}
+                <div className="mb-5">
+                    <label className="block text-sm font-medium text-surface-600 mb-2">
+                        Note <span className="text-surface-400 font-normal">(Optional)</span>
                     </label>
                     <textarea
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
-                        className="input"
+                        className="input resize-none"
                         placeholder="Add a note..."
                         rows="2"
                     />
                 </div>
 
+                {/* Category */}
                 <CategorySelector
                     value={category}
                     onChange={setCategory}
-                    className="mb-4"
+                    className="mb-5"
                 />
 
+                {/* Date */}
                 <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-surface-600 mb-2">
                         Date
                     </label>
                     <input
@@ -212,6 +234,7 @@ const AddTransactionPage = () => {
                     />
                 </div>
 
+                {/* Submit Button */}
                 <button
                     type="submit"
                     disabled={loading || !contactId || !amount}

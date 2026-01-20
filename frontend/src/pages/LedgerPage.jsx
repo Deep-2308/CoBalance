@@ -122,12 +122,22 @@ const LedgerPage = () => {
         return getBalanceUIMeta(balance).label;
     };
 
+    // Get initials from name
+    const getInitials = (name) => {
+        return name
+            .split(' ')
+            .map(word => word[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+    };
+
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-surface-50">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
-                <div className="flex items-center justify-between mb-3">
-                    <h1 className="text-2xl font-bold text-gray-900">Ledger</h1>
+            <div className="page-header">
+                <div className="flex items-center justify-between mb-4">
+                    <h1 className="text-2xl font-display font-bold text-primary-900">Ledger</h1>
                     <SortDropdown value={sortBy} onChange={setSortBy} />
                 </div>
 
@@ -177,46 +187,57 @@ const LedgerPage = () => {
                 <CategorySummary />
 
                 {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+                    <div className="flex items-center justify-center py-16">
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="w-10 h-10 border-3 border-primary-200 border-t-primary-800 rounded-full animate-spin"></div>
+                            <p className="text-sm text-surface-500 font-medium">Loading contacts...</p>
+                        </div>
                     </div>
                 ) : contacts.length > 0 ? (
-                    <div className="space-y-3">
-                        {contacts.map((contact) => (
+                    <div className="space-y-2 mt-4">
+                        {contacts.map((contact, index) => (
                             <Link
                                 key={contact.id}
                                 to={`/ledger/contact/${contact.id}`}
-                                className="card hover:shadow-md transition-shadow"
+                                className="card card-interactive block"
+                                style={{ animationDelay: `${index * 50}ms` }}
                             >
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-                                            <User className="w-6 h-6 text-primary-600" />
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        {/* Avatar with initials */}
+                                        <div className="avatar avatar-md flex-shrink-0">
+                                            {getInitials(contact.name)}
                                         </div>
-                                        <div>
-                                            <p className="font-medium text-gray-900">{contact.name}</p>
-                                            <p className="text-sm text-gray-500 capitalize">{contact.type}</p>
+                                        <div className="min-w-0">
+                                            <p className="font-display font-semibold text-primary-900 truncate">
+                                                {contact.name}
+                                            </p>
+                                            <p className="text-xs text-surface-400 capitalize">
+                                                {contact.type}
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className={`font-bold ${getBalanceColor(contact.balance)}`}>
-                                            ₹{Math.abs(parseFloat(contact.balance)).toFixed(2)}
+                                    <div className="text-right flex-shrink-0">
+                                        <p className={`font-display font-bold ${getBalanceColor(contact.balance)}`}>
+                                            ₹{Math.abs(parseFloat(contact.balance)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                         </p>
-                                        <p className="text-xs text-gray-500">{getBalanceText(contact.balance)}</p>
+                                        <p className="text-2xs text-surface-400">{getBalanceText(contact.balance)}</p>
                                     </div>
                                 </div>
                             </Link>
                         ))}
                     </div>
                 ) : (
-                    <div className="card text-center py-12 mt-6">
-                        <User className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                        <p className="text-gray-500 font-medium">
+                    <div className="card empty-state mt-6">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-100 flex items-center justify-center">
+                            <User className="w-8 h-8 text-surface-300" />
+                        </div>
+                        <p className="empty-state-title">
                             {debouncedSearch || Object.values(filters).some(v => v) 
                                 ? 'No contacts match your filters' 
                                 : 'No contacts yet'}
                         </p>
-                        <p className="text-sm text-gray-400 mt-1">
+                        <p className="empty-state-text">
                             {debouncedSearch || Object.values(filters).some(v => v)
                                 ? 'Try adjusting your search or filters'
                                 : 'Add a contact to start tracking'}
@@ -228,7 +249,8 @@ const LedgerPage = () => {
             {/* Floating Add Button */}
             <Link
                 to="/ledger/add-contact"
-                className="fixed bottom-24 right-6 bg-primary-600 hover:bg-primary-700 text-white rounded-full p-4 shadow-lg active:scale-95 transition-transform z-20"
+                className="fab"
+                aria-label="Add contact"
             >
                 <Plus className="w-6 h-6" />
             </Link>

@@ -58,9 +58,7 @@ const ContactDetailPage = () => {
     };
 
     const handleReminderSent = () => {
-        // Refresh last reminder info
         fetchLastReminder();
-        // Refresh history if it's open
         if (showHistory) {
             fetchReminderHistory();
         }
@@ -95,37 +93,59 @@ const ContactDetailPage = () => {
         return meta.label;
     };
 
-    // Check if reminder can be sent
     const canSendReminder = () => {
         const bal = parseFloat(currentBalance);
-        // Can send reminder if there's a positive balance (they owe you)
         return bal > 0;
+    };
+
+    // Get initials from name
+    const getInitials = (name) => {
+        return name
+            ?.split(' ')
+            .map(word => word[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2) || '?';
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            <div className="min-h-screen bg-surface-50 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="w-10 h-10 border-3 border-primary-200 border-t-primary-800 rounded-full animate-spin"></div>
+                    <p className="text-sm text-surface-500 font-medium">Loading...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
+        <div className="min-h-screen bg-surface-50">
+            {/* Header */}
+            <div className="page-header">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-lg">
-                            <ArrowLeft className="w-5 h-5" />
+                        <button 
+                            onClick={() => navigate(-1)} 
+                            className="p-2 -ml-2 hover:bg-surface-100 rounded-xl transition-colors"
+                        >
+                            <ArrowLeft className="w-5 h-5 text-surface-600" />
                         </button>
-                        <div>
-                            <h1 className="text-xl font-bold text-gray-900">{contact?.name}</h1>
-                            <p className="text-sm text-gray-500 capitalize">{contact?.type}</p>
+                        <div className="flex items-center gap-3">
+                            <div className="avatar avatar-md">
+                                {getInitials(contact?.name)}
+                            </div>
+                            <div>
+                                <h1 className="text-lg font-display font-bold text-primary-900">
+                                    {contact?.name}
+                                </h1>
+                                <p className="text-xs text-surface-400 capitalize">{contact?.type}</p>
+                            </div>
                         </div>
                     </div>
                     <button
                         onClick={handleDelete}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                        className="p-2 text-danger-500 hover:bg-danger-50 rounded-xl transition-colors"
                     >
                         <Trash2 className="w-5 h-5" />
                     </button>
@@ -134,11 +154,19 @@ const ContactDetailPage = () => {
 
             <div className="page-container">
                 {/* Balance Card */}
-                <div className="card mb-4">
-                    <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">{getBalanceText(currentBalance)}</p>
-                        <p className={`text-4xl font-bold ${getBalanceColor(currentBalance)}`}>
-                            ₹{Math.abs(parseFloat(currentBalance)).toFixed(2)}
+                <div className={`card mb-4 ${
+                    parseFloat(currentBalance) > 0 
+                        ? 'balance-card-positive' 
+                        : parseFloat(currentBalance) < 0 
+                            ? 'balance-card-negative' 
+                            : 'balance-card-neutral'
+                }`}>
+                    <div className="text-center py-2">
+                        <p className="text-sm text-surface-500 font-medium mb-1">
+                            {getBalanceText(currentBalance)}
+                        </p>
+                        <p className={`text-4xl font-display font-bold ${getBalanceColor(currentBalance)}`}>
+                            ₹{Math.abs(parseFloat(currentBalance)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </p>
                     </div>
                 </div>
@@ -175,11 +203,11 @@ const ContactDetailPage = () => {
 
                 {/* Last Reminder Info */}
                 {lastReminder && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                        <div className="flex items-center gap-2 text-blue-700 text-sm">
-                            <Clock className="w-4 h-4" />
+                    <div className="bg-accent-50 border border-accent-200 rounded-xl p-4 mb-4">
+                        <div className="flex items-center gap-2 text-accent-700 text-sm">
+                            <Clock className="w-4 h-4 flex-shrink-0" />
                             <span>
-                                Last reminder sent on {format(new Date(lastReminder.sent_at), 'MMM d, yyyy')} for ₹{parseFloat(lastReminder.amount).toFixed(2)}
+                                Last reminder sent on {format(new Date(lastReminder.sent_at), 'MMM d, yyyy')} for ₹{parseFloat(lastReminder.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                             </span>
                         </div>
                     </div>
@@ -187,8 +215,8 @@ const ContactDetailPage = () => {
 
                 {/* No Mobile Warning */}
                 {canSendReminder() && !contact?.mobile && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                        <p className="text-amber-700 text-sm">
+                    <div className="bg-warning-50 border border-warning-200 rounded-xl p-4 mb-4">
+                        <p className="text-warning-700 text-sm">
                             No mobile number saved. You'll need to enter it when sending a reminder.
                         </p>
                     </div>
@@ -201,11 +229,13 @@ const ContactDetailPage = () => {
                             onClick={toggleHistory}
                             className="flex items-center justify-between w-full text-left py-2"
                         >
-                            <span className="text-sm font-medium text-gray-700">Reminder History</span>
+                            <span className="text-sm font-display font-semibold text-surface-600">
+                                Reminder History
+                            </span>
                             {showHistory ? (
-                                <ChevronUp className="w-4 h-4 text-gray-500" />
+                                <ChevronUp className="w-4 h-4 text-surface-400" />
                             ) : (
-                                <ChevronDown className="w-4 h-4 text-gray-500" />
+                                <ChevronDown className="w-4 h-4 text-surface-400" />
                             )}
                         </button>
                         
@@ -213,20 +243,20 @@ const ContactDetailPage = () => {
                             <div className="space-y-2 mt-2">
                                 {reminderHistory.length > 0 ? (
                                     reminderHistory.map((reminder) => (
-                                        <div key={reminder.id} className="bg-gray-50 rounded-lg p-3 text-sm">
+                                        <div key={reminder.id} className="bg-surface-50 rounded-xl p-3 text-sm border border-surface-100">
                                             <div className="flex justify-between items-start mb-1">
-                                                <span className="font-medium text-gray-900">
-                                                    ₹{parseFloat(reminder.amount).toFixed(2)}
+                                                <span className="font-display font-semibold text-primary-900">
+                                                    ₹{parseFloat(reminder.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                                 </span>
-                                                <span className="text-gray-500 text-xs">
+                                                <span className="text-surface-400 text-xs">
                                                     {format(new Date(reminder.sent_at), 'MMM d, yyyy h:mm a')}
                                                 </span>
                                             </div>
-                                            <p className="text-gray-600 text-xs line-clamp-2">{reminder.message}</p>
+                                            <p className="text-surface-500 text-xs line-clamp-2">{reminder.message}</p>
                                         </div>
                                     ))
                                 ) : (
-                                    <p className="text-gray-500 text-sm">Loading...</p>
+                                    <p className="text-surface-400 text-sm">Loading...</p>
                                 )}
                             </div>
                         )}
@@ -235,43 +265,59 @@ const ContactDetailPage = () => {
 
                 {/* Transactions */}
                 <div>
-                    <h2 className="text-lg font-bold text-gray-900 mb-3">Transaction History</h2>
+                    <h2 className="section-title">Transaction History</h2>
                     {transactions.length > 0 ? (
                         <div className="space-y-2">
-                            {transactions.map((txn) => {
+                            {transactions.map((txn, index) => {
                                 const txnMeta = getTransactionUIMeta(txn.transaction_type);
                                 return (
-                                <div key={txn.id} className="card">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${txnMeta.colorClasses.bg} ${txnMeta.colorClasses.text}`}>
-                                                {txnMeta.label}
-                                            </span>
-                                            {txn.note && (
-                                                <p className="text-sm text-gray-600 mt-1">{txn.note}</p>
+                                    <div 
+                                        key={txn.id} 
+                                        className="card"
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <span className={`badge ${
+                                                    txn.transaction_type === 'credit' 
+                                                        ? 'badge-success' 
+                                                        : 'badge-danger'
+                                                }`}>
+                                                    {txnMeta.label}
+                                                </span>
+                                                {txn.note && (
+                                                    <p className="text-sm text-surface-600 mt-2">{txn.note}</p>
+                                                )}
+                                            </div>
+                                            <div className="text-right">
+                                                <p className={`font-display font-bold ${
+                                                    txn.transaction_type === 'credit' 
+                                                        ? 'text-success-600' 
+                                                        : 'text-danger-600'
+                                                }`}>
+                                                    {txnMeta.balanceEffect}₹{parseFloat(txn.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                </p>
+                                                <p className="text-xs text-surface-400">
+                                                    Balance: ₹{parseFloat(txn.running_balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-xs text-surface-400">
+                                                {format(new Date(txn.date), 'MMM d, yyyy')}
+                                            </p>
+                                            {txn.category && txn.category !== 'other' && (
+                                                <CategoryBadge category={txn.category} size="sm" />
                                             )}
                                         </div>
-                                        <div className="text-right">
-                                            <p className={`font-bold ${txnMeta.colorClasses.textBold}`}>
-                                                {txnMeta.balanceEffect}₹{parseFloat(txn.amount).toFixed(2)}
-                                            </p>
-                                            <p className="text-xs text-gray-500">
-                                                Balance: ₹{parseFloat(txn.running_balance).toFixed(2)}
-                                            </p>
-                                        </div>
                                     </div>
-                                    <p className="text-xs text-gray-500">
-                                        {format(new Date(txn.date), 'MMM d, yyyy')}
-                                    </p>
-                                    {txn.category && txn.category !== 'other' && (
-                                        <CategoryBadge category={txn.category} size="sm" />
-                                    )}
-                                </div>
-                                );})}
+                                );
+                            })}
                         </div>
                     ) : (
-                        <div className="card text-center py-8">
-                            <p className="text-gray-500">No transactions yet</p>
+                        <div className="card empty-state">
+                            <p className="empty-state-title">No transactions yet</p>
+                            <p className="empty-state-text">Add your first transaction above</p>
                         </div>
                     )}
                 </div>

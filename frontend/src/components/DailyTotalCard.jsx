@@ -15,16 +15,16 @@ const DailyTotalCard = ({ amount, visible = true }) => {
     const spendAmount = parseFloat(amount || 0);
 
     return (
-        <div className="card bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+        <div className="card bg-gradient-to-r from-accent-50 to-accent-100/50 border-accent-200">
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
-                        <Banknote className="w-4 h-4 text-amber-600" />
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-accent-100 rounded-xl flex items-center justify-center">
+                        <Banknote className="w-5 h-5 text-accent-600" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700">Today's Spending</span>
+                    <span className="text-sm font-medium text-surface-600">Today's Spending</span>
                 </div>
-                <p className="text-lg font-bold text-amber-700">
-                    ₹{spendAmount.toFixed(0)}
+                <p className="text-xl font-display font-bold text-accent-700">
+                    ₹{spendAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                 </p>
             </div>
         </div>
