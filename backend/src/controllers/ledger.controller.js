@@ -360,3 +360,95 @@ export const getLedgerSummary = async (req, res) => {
         res.status(500).json({ error: 'Failed to get ledger summary' });
     }
 };
+
+// Settle contact - creates a settlement transaction to zero out balance
+export const settleContact = async (req, res) => {
+    try {
+        const { contactId } = req.body;
+        const userId = req.user.userId;
+
+        if (!contactId) {
+            return res.status(400).json({ error: 'Contact ID required' });
+        }
+
+        if (supabase) {
+            // Verify contact ownership
+            const { data: contact, error: contactError } = await supabase
+                .from('contacts')
+                .select('*')
+                .eq('id', contactId)
+                .eq('user_id', userId)
+                .single();
+
+            if (contactError) {
+                if (contactError.code === 'PGRST116') {
+                    return res.status(404).json({ error: 'Contact not found' });
+                }
+                throw contactError;
+            }
+
+            // Get all transactions for this contact to calculate balance
+            const { data: transactions, error: txnError } = await supabase
+                .from('transactions')
+                .select('amount, transaction_type')
+                .eq('contact_id', contactId);
+
+            if (txnError) throw txnError;
+
+            // Calculate current balance
+            const balance = transactions.reduce((acc, txn) => {
+                if (txn.transaction_type === 'credit') {
+                    return acc + parseFloat(txn.amount);
+                } else {
+                    return acc - parseFloat(txn.amount);
+                }
+            }, 0);
+
+            // Check if already settled
+            if (balance === 0) {
+                return res.status(400).json({ error: 'Already settled' });
+            }
+
+            // Determine settlement transaction type:
+            // - If balance > 0 (user will get money), they received it → debit
+            // - If balance < 0 (user owes money), they paid it → credit
+            const settlementType = balance > 0 ? 'debit' : 'credit';
+            const settlementAmount = Math.abs(balance);
+
+            // Create settlement transaction
+            const { data: settlementTxn, error: insertError } = await supabase
+                .from('transactions')
+                .insert({
+                    contact_id: contactId,
+                    amount: settlementAmount,
+                    transaction_type: settlementType,
+                    note: 'Settlement',
+                    date: new Date().toISOString().split('T')[0]
+                })
+                .select()
+                .single();
+
+            if (insertError) throw insertError;
+
+            res.json({
+                success: true,
+                message: 'Settlement completed',
+                transaction: settlementTxn,
+                previousBalance: balance.toFixed(2),
+                newBalance: '0.00'
+            });
+        } else {
+            // Mock response
+            res.json({
+                success: true,
+                message: 'Settlement completed',
+                transaction: { id: 'mock-settlement-id', note: 'Settlement' },
+                previousBalance: '0.00',
+                newBalance: '0.00'
+            });
+        }
+    } catch (error) {
+        console.error('Settle contact error:', error);
+        res.status(500).json({ error: 'Failed to settle contact' });
+    }
+};

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Send, Trash2, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Plus, Send, Trash2, Clock, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import api from '../services/api';
 import ReminderConfirmModal from '../components/ReminderConfirmModal';
+import SettlementConfirmModal from '../components/SettlementConfirmModal';
 import CategoryBadge from '../components/CategoryBadge';
 import { getTransactionUIMeta, getBalanceUIMeta } from '../utils/transactionSemantics';
 
@@ -20,6 +21,9 @@ const ContactDetailPage = () => {
     const [lastReminder, setLastReminder] = useState(null);
     const [reminderHistory, setReminderHistory] = useState([]);
     const [showHistory, setShowHistory] = useState(false);
+
+    // Settlement state
+    const [showSettlementModal, setShowSettlementModal] = useState(false);
 
     useEffect(() => {
         fetchContactDetail();
@@ -170,6 +174,19 @@ const ContactDetailPage = () => {
                         </p>
                     </div>
                 </div>
+
+                {/* Settle Up Button */}
+                {parseFloat(currentBalance) !== 0 && (
+                    <div className="mb-4">
+                        <button
+                            onClick={() => setShowSettlementModal(true)}
+                            className="w-full btn btn-secondary flex items-center justify-center gap-2 py-3"
+                        >
+                            <CheckCircle className="w-5 h-5" />
+                            <span>Settle Up</span>
+                        </button>
+                    </div>
+                )}
 
                 {/* Actions */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
@@ -332,6 +349,16 @@ const ContactDetailPage = () => {
                 amount={parseFloat(currentBalance)}
                 contactId={id}
                 onReminderSent={handleReminderSent}
+            />
+
+            {/* Settlement Modal */}
+            <SettlementConfirmModal
+                isOpen={showSettlementModal}
+                onClose={() => setShowSettlementModal(false)}
+                contactName={contact?.name || ''}
+                balance={parseFloat(currentBalance)}
+                contactId={id}
+                onSettled={fetchContactDetail}
             />
         </div>
     );
