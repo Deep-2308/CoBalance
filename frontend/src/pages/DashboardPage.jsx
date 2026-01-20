@@ -73,25 +73,33 @@ const DashboardPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            <div className="min-h-screen bg-surface-50 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="w-10 h-10 border-3 border-primary-200 border-t-primary-800 rounded-full animate-spin"></div>
+                    <p className="text-sm text-surface-500 font-medium">Loading...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-6 rounded-b-3xl shadow-lg">
-                <div className="flex items-center justify-between mb-2">
-                    <h1 className="text-2xl font-bold">Welcome, {user?.name || 'User'}!</h1>
+        <div className="min-h-screen bg-surface-50">
+            {/* Header - Warm gradient */}
+            <div className="bg-gradient-warm text-white px-6 pt-8 pb-10 rounded-b-3xl shadow-soft-lg relative overflow-hidden">
+                {/* Subtle texture overlay */}
+                <div className="absolute inset-0 opacity-5 bg-noise pointer-events-none" />
+                
+                <div className="relative z-10">
+                    <p className="text-primary-300 text-sm font-medium mb-1">Welcome back,</p>
+                    <h1 className="text-2xl font-display font-bold tracking-tight">
+                        {user?.name || 'User'}
+                    </h1>
                 </div>
-                <p className="text-primary-100 text-sm">Here's your financial overview</p>
             </div>
 
-            <div className="page-container">
+            <div className="page-container -mt-4">
                 {/* Month Selector */}
-                <div className="mt-4 mb-4">
+                <div className="mb-4">
                     <MonthSelector
                         selectedMonth={selectedMonth}
                         selectedYear={selectedYear}
@@ -101,7 +109,7 @@ const DashboardPage = () => {
 
                 {/* Today's Spending (only for current month) */}
                 {isCurrentMonth && monthlyData?.todaySpending && (
-                    <div className="mb-4">
+                    <div className="mb-4 animate-fade-in">
                         <DailyTotalCard
                             amount={monthlyData.todaySpending}
                             visible={true}
@@ -126,7 +134,7 @@ const DashboardPage = () => {
                 </div>
 
                 {/* Balance Cards */}
-                <div className="grid gap-4 mb-6">
+                <div className="space-y-3 mb-6">
                     <BalanceCard
                         title="Net Balance"
                         amount={summary?.netBalance || 0}
@@ -134,7 +142,7 @@ const DashboardPage = () => {
                         icon={Wallet}
                     />
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                         <BalanceCard
                             title="You'll Get"
                             amount={summary?.totalYouGet || 0}
@@ -152,28 +160,28 @@ const DashboardPage = () => {
 
                 {/* Quick Actions */}
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-3">Quick Actions</h2>
+                    <h2 className="section-title">Quick Actions</h2>
                     <div className="grid grid-cols-2 gap-3">
                         <Link
                             to="/ledger/add-transaction"
-                            className="card hover:shadow-md transition-shadow"
+                            className="card card-interactive group"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-primary-100 rounded-lg">
-                                    <Plus className="w-5 h-5 text-primary-600" />
+                                <div className="p-2.5 bg-accent-100 rounded-xl group-hover:bg-accent-200 transition-colors">
+                                    <Plus className="w-5 h-5 text-accent-600" />
                                 </div>
-                                <span className="font-medium text-gray-900">Add Transaction</span>
+                                <span className="font-display font-semibold text-primary-900">Add Transaction</span>
                             </div>
                         </Link>
                         <Link
                             to="/groups"
-                            className="card hover:shadow-md transition-shadow"
+                            className="card card-interactive group"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-primary-100 rounded-lg">
-                                    <Plus className="w-5 h-5 text-primary-600" />
+                                <div className="p-2.5 bg-primary-100 rounded-xl group-hover:bg-primary-200 transition-colors">
+                                    <Plus className="w-5 h-5 text-primary-700" />
                                 </div>
-                                <span className="font-medium text-gray-900">Add Expense</span>
+                                <span className="font-display font-semibold text-primary-900">Add Expense</span>
                             </div>
                         </Link>
                     </div>
@@ -181,41 +189,53 @@ const DashboardPage = () => {
 
                 {/* Recent Activity (filtered by month) */}
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-3">
+                    <h2 className="section-title">
                         Activity ({new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'short' })} {selectedYear})
                     </h2>
                     {filteredActivity.length > 0 ? (
                         <div className="space-y-2">
                             {filteredActivity.slice(0, 10).map((item, index) => (
-                                <div key={index} className="card hover:bg-gray-50 transition-colors">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${item.type === 'transaction' ? 'bg-blue-100' : 'bg-purple-100'
-                                                }`}>
+                                <div 
+                                    key={index} 
+                                    className="card card-interactive"
+                                    style={{ animationDelay: `${index * 50}ms` }}
+                                >
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                                item.type === 'transaction' 
+                                                    ? 'bg-accent-100' 
+                                                    : 'bg-primary-100'
+                                            }`}>
                                                 {item.type === 'transaction' ? (
-                                                    <ArrowUpRight className="w-5 h-5 text-blue-600" />
+                                                    <ArrowUpRight className="w-5 h-5 text-accent-600" />
                                                 ) : (
-                                                    <ArrowDownRight className="w-5 h-5 text-purple-600" />
+                                                    <ArrowDownRight className="w-5 h-5 text-primary-600" />
                                                 )}
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900 text-sm">{item.description}</p>
-                                                <p className="text-xs text-gray-500">
+                                            <div className="min-w-0">
+                                                <p className="font-medium text-primary-900 text-sm truncate">
+                                                    {item.description}
+                                                </p>
+                                                <p className="text-xs text-surface-400">
                                                     {format(new Date(item.date), 'MMM d, yyyy')}
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="font-bold text-gray-900">₹{parseFloat(item.amount).toFixed(2)}</p>
-                                        </div>
+                                        <p className="font-display font-bold text-primary-900 flex-shrink-0">
+                                            ₹{parseFloat(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                        </p>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="card text-center py-8">
-                            <p className="text-gray-500">No activity this month</p>
-                            <p className="text-sm text-gray-400 mt-1">Start by adding a transaction or expense</p>
+                        <div className="card empty-state">
+                            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-100 flex items-center justify-center">
+                                <Wallet className="w-6 h-6 text-surface-400" />
+                            </div>
+                            <p className="empty-state-title">No activity this month</p>
+                            <p className="empty-state-text">Start by adding a transaction or expense</p>
                         </div>
                     )}
                 </div>

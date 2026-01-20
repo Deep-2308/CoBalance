@@ -34,7 +34,7 @@ const MonthSelector = ({ selectedMonth, selectedYear, onChange }) => {
                 <select
                     value={selectedMonth}
                     onChange={handleMonthChange}
-                    className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer"
+                    className="appearance-none bg-white border border-surface-200 rounded-xl px-4 py-2.5 pr-9 text-sm font-display font-semibold text-primary-900 focus:outline-none focus:ring-2 focus:ring-accent-400/30 focus:border-accent-500 cursor-pointer shadow-soft transition-all"
                 >
                     {months.map((month, index) => (
                         <option key={month} value={index + 1}>
@@ -42,7 +42,7 @@ const MonthSelector = ({ selectedMonth, selectedYear, onChange }) => {
                         </option>
                     ))}
                 </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400 pointer-events-none" />
             </div>
 
             {/* Year Select */}
@@ -50,7 +50,7 @@ const MonthSelector = ({ selectedMonth, selectedYear, onChange }) => {
                 <select
                     value={selectedYear}
                     onChange={handleYearChange}
-                    className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer"
+                    className="appearance-none bg-white border border-surface-200 rounded-xl px-4 py-2.5 pr-9 text-sm font-display font-semibold text-primary-900 focus:outline-none focus:ring-2 focus:ring-accent-400/30 focus:border-accent-500 cursor-pointer shadow-soft transition-all"
                 >
                     {years.map((year) => (
                         <option key={year} value={year}>
@@ -58,7 +58,7 @@ const MonthSelector = ({ selectedMonth, selectedYear, onChange }) => {
                         </option>
                     ))}
                 </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400 pointer-events-none" />
             </div>
         </div>
     );

@@ -6,7 +6,8 @@ import {
     updateContact,
     deleteContact,
     addTransaction,
-    getLedgerSummary
+    getLedgerSummary,
+    settleContact
 } from '../controllers/ledger.controller.js';
 import { authenticateToken } from '../middleware/auth.middleware.js';
 
@@ -27,5 +28,8 @@ router.post('/transactions', addTransaction);
 
 // Summary
 router.get('/summary', getLedgerSummary);
+
+// Settlement
+router.post('/settle', settleContact);
 
 export default router;

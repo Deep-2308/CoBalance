@@ -35,10 +35,21 @@ const GroupsPage = () => {
         group.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // Get initials from group name
+    const getInitials = (name) => {
+        return name
+            .split(' ')
+            .map(word => word[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+    };
+
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
-                <h1 className="text-2xl font-bold text-gray-900 mb-3">Groups</h1>
+        <div className="min-h-screen bg-surface-50">
+            {/* Header */}
+            <div className="page-header">
+                <h1 className="text-2xl font-display font-bold text-primary-900 mb-3">Groups</h1>
                 
                 {/* Search */}
                 <SearchBar
@@ -50,25 +61,34 @@ const GroupsPage = () => {
 
             <div className="page-container">
                 {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+                    <div className="flex items-center justify-center py-16">
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="w-10 h-10 border-3 border-primary-200 border-t-primary-800 rounded-full animate-spin"></div>
+                            <p className="text-sm text-surface-500 font-medium">Loading groups...</p>
+                        </div>
                     </div>
                 ) : filteredGroups.length > 0 ? (
-                    <div className="space-y-3">
-                        {filteredGroups.map((group) => (
+                    <div className="space-y-2">
+                        {filteredGroups.map((group, index) => (
                             <Link
                                 key={group.id}
                                 to={`/groups/${group.id}`}
-                                className="card hover:shadow-md transition-shadow"
+                                className="card card-interactive block"
+                                style={{ animationDelay: `${index * 50}ms` }}
                             >
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                                            <UsersIcon className="w-6 h-6 text-purple-600" />
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        {/* Group Avatar */}
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-100 to-accent-200 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-sm font-display font-bold text-accent-700">
+                                                {getInitials(group.name)}
+                                            </span>
                                         </div>
-                                        <div>
-                                            <p className="font-medium text-gray-900">{group.name}</p>
-                                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                                        <div className="min-w-0">
+                                            <p className="font-display font-semibold text-primary-900 truncate">
+                                                {group.name}
+                                            </p>
+                                            <p className="text-xs text-surface-400 flex items-center gap-1">
                                                 <User className="w-3 h-3" />
                                                 {group.memberCount} {group.memberCount === 1 ? 'member' : 'members'}
                                             </p>
@@ -79,12 +99,14 @@ const GroupsPage = () => {
                         ))}
                     </div>
                 ) : (
-                    <div className="card text-center py-12 mt-6">
-                        <UsersIcon className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                        <p className="text-gray-500 font-medium">
+                    <div className="card empty-state mt-6">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-100 flex items-center justify-center">
+                            <UsersIcon className="w-8 h-8 text-surface-300" />
+                        </div>
+                        <p className="empty-state-title">
                             {searchTerm ? 'No groups match your search' : 'No groups yet'}
                         </p>
-                        <p className="text-sm text-gray-400 mt-1">
+                        <p className="empty-state-text">
                             {searchTerm 
                                 ? 'Try a different search term' 
                                 : 'Create a group to track shared expenses'}
@@ -93,9 +115,11 @@ const GroupsPage = () => {
                 )}
             </div>
 
+            {/* Floating Add Button */}
             <Link
                 to="/groups/add"
-                className="fixed bottom-24 right-6 bg-primary-600 hover:bg-primary-700 text-white rounded-full p-4 shadow-lg active:scale-95 transition-transform z-20"
+                className="fab"
+                aria-label="Create group"
             >
                 <Plus className="w-6 h-6" />
             </Link>
