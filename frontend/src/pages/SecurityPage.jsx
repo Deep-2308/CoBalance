@@ -14,7 +14,7 @@ import {
     AlertTriangle,
     Clock,
     Send
-} from 'lucide-react';
+} from 'lucide-react';f
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { formatDistanceToNow } from 'date-fns';

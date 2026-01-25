@@ -1,67 +1,92 @@
-# CoBalance - Smart Finance Tracking SaaS
+# CoBalance
 
-CoBalance is a production-ready SaaS application that combines digital ledger bookkeeping with shared expense management. Built for Indian MSME owners, shopkeepers, freelancers, and friends/families managing shared expenses.
+CoBalance is a fintech SaaS application built for personal and small business finance tracking. It combines a digital ledger for managing money you owe and are owed (inspired by Khatabook) with shared expense management for groups. Designed for individuals, shopkeepers, freelancers, and small businesses who need a simple, reliable way to track balances and settlements.
 
-## Features
+## Key Features
 
-### 🔐 Authentication
+### Authentication
 
-- Mobile number-based OTP authentication
+- OTP-based mobile authentication
 - Secure JWT token management
-- Multi-language support (English, Hindi, etc..)
+- Protected routes and session persistence
 
-### 📊 Digital Ledger
+### Personal Ledger
 
-- Track personal and business transactions
-- Manage contacts (customers, friends, suppliers)
-- Automatic balance calculation
-- Transaction history with running balance
+- Add contacts (customers, friends, suppliers)
+- Record transactions: "You Paid" or "You Received"
+- Automatic balance calculation per contact
+- Contact-wise transaction history with running balance
+- Search, filter, and sort transactions
 
-### 👥 Group Expense Management
+### Settlement Flow
+
+- "Settle Up" button for contacts with outstanding balance
+- Full settlement creates a clearing transaction
+- Balance resets to zero after settlement
+- Settlement history tracked per contact
+
+### Groups and Shared Expenses
 
 - Create groups for shared expenses
-- Add expenses with flexible splitting
-- Automatic member balance calculation
-- Real-time expense tracking
+- Add members (including non-registered users via shadow accounts)
+- Add expenses with flexible splitting options
+- Per-member balance calculation
+- SMS invitations for new users
 
-### 💰 Smart Settlements
-
-- Debt simplification algorithm
-- Minimized settlement transactions
-- Clear payment suggestions
-- Mark settlements as paid
-
-### 📱 Reminders
+### Payment Reminders
 
 - WhatsApp deep-link integration
-- Send payment reminders to contacts
+- Send reminders to contacts with outstanding balances
 - Pre-filled reminder messages
+- Reminder history tracking
+
+### Dashboard and Reports
+
+- Overview of total balances (You'll Get / You Owe)
+- Recent activity summary
+- Monthly reports with daily breakdown chart
+- Category-wise spending summary
+- "Today's Spending" card
+
+### Profile Management
+
+- View and edit user profile
+- Business information (optional)
+- App preferences
+
+### Expense Categories
+
+- Predefined expense categories
+- Assign categories to transactions
+- Monthly category summary
+
+## Screenshots
+
+> Screenshots to be added.
 
 ## Tech Stack
 
 ### Frontend
 
-- **Framework**: React + Vite
+- **Framework**: React 18 + Vite
 - **Styling**: Tailwind CSS
 - **Routing**: React Router
 - **State Management**: React Context
 - **HTTP Client**: Axios
 - **Icons**: Lucide React
-- **Date Formatting**: date-fns
+- **Date Handling**: date-fns
 
 ### Backend
 
 - **Runtime**: Node.js
 - **Framework**: Express.js
-- **Database**: PostgreSQL (Supabase)
 - **Authentication**: JWT
-- **CORS**: Enabled for cross-origin requests
-- **Security**: Helmet for secure headers
+- **Security**: Helmet, CORS
 
 ### Database
 
-- **Provider**: Supabase (PostgreSQL)
-- **ORM**: Direct SQL queries via Supabase client
+- **Provider**: PostgreSQL (Supabase)
+- **Access**: Supabase client with direct queries
 
 ## Project Structure
 
@@ -69,188 +94,143 @@ CoBalance is a production-ready SaaS application that combines digital ledger bo
 CoBalance_SAASapp/
 ├── backend/
 │   ├── src/
-│   │   ├── controllers/       # Business logic
-│   │   ├── middleware/        # Auth, validation
-│   │   ├── routes/            # API endpoints
-│   │   ├── services/          # Shared services
-│   │   ├── utils/             # Helpers
-│   │   └── server.js          # Entry point
+│   │   ├── controllers/       # Route handlers and business logic
+│   │   ├── middleware/        # Auth middleware
+│   │   ├── routes/            # API route definitions
+│   │   ├── services/          # Shared services (SMS, etc.)
+│   │   ├── utils/             # Helper functions
+│   │   └── server.js          # Express app entry point
 │   ├── .env                   # Environment variables
 │   └── package.json
 ├── frontend/
 │   ├── src/
-│   │   ├── components/        # Reusable components
-│   │   ├── context/           # React Context
-│   │   ├── pages/             # Route components
+│   │   ├── components/        # Reusable UI components
+│   │   ├── context/           # React Context (Auth)
+│   │   ├── pages/             # Page components
 │   │   ├── services/          # API client
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── index.html
+│   │   ├── utils/             # Helper functions
+│   │   ├── App.jsx            # App routes
+│   │   └── main.jsx           # Entry point
+│   ├── .env                   # Frontend environment
 │   └── package.json
-└── database/
-    └── schema.sql             # Database schema
+├── database/
+│   ├── schema.sql             # Database schema
+│   ├── rls_policies.sql       # Row Level Security policies
+│   └── migrations/            # Schema migrations
+└── README.md
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ installed
-- Supabase account (or PostgreSQL database)
+- Node.js 18 or higher
 - npm or yarn
+- Supabase account (or self-hosted PostgreSQL)
 
-### 1. Database Setup
-
-1. Create a Supabase project at https://supabase.com
-2. Run the SQL schema from `database/schema.sql` in your Supabase SQL editor
-3. Get your Supabase credentials:
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-
-### 2. Backend Setup
+### Backend Setup
 
 ```bash
 cd backend
 npm install
 
-# Create .env file (copy from .env.example)
-# Add your Supabase credentials
+# Create .env file from example
+cp .env.example .env
 
+# Configure environment variables (see below)
+# Then start the development server
 npm run dev
 ```
 
-Backend will run on `http://localhost:5000`
+The backend runs on `http://localhost:5000` by default.
 
-### 3. Frontend Setup
+### Frontend Setup
 
 ```bash
 cd frontend
 npm install
 
-# .env file already configured for local development
+# Create .env file
+# VITE_API_BASE_URL=http://localhost:5000
 
 npm run dev
 ```
 
-Frontend will run on `http://localhost:5173`
+The frontend runs on `http://localhost:5173` by default.
 
-## Environment Variables
+### Environment Variables
 
-### Backend (.env)
+**Backend (.env)**
 
-```env
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-JWT_SECRET=your_jwt_secret
-PORT=5000
-OTP_PROVIDER=mock
-FRONTEND_URL=http://localhost:5173
-```
+- `SUPABASE_URL` - Your Supabase project URL
+- `SUPABASE_ANON_KEY` - Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key
+- `JWT_SECRET` - Secret for JWT token signing
+- `PORT` - Server port (default: 5000)
+- `OTP_PROVIDER` - Set to `mock` for development
+- `FRONTEND_URL` - Frontend URL for CORS
 
-### Frontend (.env)
+**Frontend (.env)**
 
-```env
-VITE_API_BASE_URL=http://localhost:5000
-```
+- `VITE_API_BASE_URL` - Backend API URL
 
-## API Endpoints
-
-### Authentication
-
-- `POST /api/auth/send-otp` - Send OTP to mobile
-- `POST /api/auth/verify-otp` - Verify OTP and login
-- `POST /api/auth/update-profile` - Update user profile
-- `GET /api/auth/me` - Get current user
-
-### Ledger
-
-- `POST /api/ledger/contacts` - Create contact
-- `GET /api/ledger/contacts` - List contacts
-- `GET /api/ledger/contacts/:id` - Get contact details
-- `PUT /api/ledger/contacts/:id` - Update contact
-- `DELETE /api/ledger/contacts/:id` - Delete contact
-- `POST /api/ledger/transactions` - Add transaction
-- `GET /api/ledger/summary` - Get ledger summary
-
-### Groups
-
-- `POST /api/groups` - Create group
-- `GET /api/groups` - List groups
-- `GET /api/groups/:id` - Get group details
-- `PUT /api/groups/:id` - Update group
-- `DELETE /api/groups/:id` - Delete group
-- `POST /api/groups/:id/members` - Add member
-- `DELETE /api/groups/:id/members/:userId` - Remove member
-- `POST /api/groups/:id/expenses` - Add expense
-- `GET /api/groups/:id/balances` - Get member balances
-
-### Settlements
-
-- `GET /api/settlements/group/:groupId` - Get group settlements
-- `POST /api/settlements/mark-paid` - Mark settlement as paid
-- `GET /api/settlements/all` - Get all settlements
-
-### Dashboard
-
-- `GET /api/dashboard/summary` - Get dashboard summary
-
-### Reminders
-
-- `POST /api/reminders/generate` - Generate WhatsApp reminder
-
-## Development Mode
-
-### Mock OTP
-
-In development mode (`OTP_PROVIDER=mock`), OTP codes are logged to the console:
-
-```
-📱 Mock OTP for +919876543210: 123456
-```
-
-The OTP is also returned in the API response for testing.
-
-## Production Deployment
+## Deployment
 
 ### Frontend (Vercel)
 
-1. Push code to GitHub
-2. Import project in Vercel
-3. Set environment variable:
-   - `VITE_API_BASE_URL=https://your-backend-url.com`
-4. Deploy
+1. Connect your GitHub repository to Vercel
+2. Set the environment variable `VITE_API_BASE_URL` to your production backend URL
+3. Deploy
 
-### Backend (Render)
+### Backend
 
-1. Create new Web Service
-2. Connect GitHub repository
-3. Configure:
-   - Build Command: `npm install`
-   - Start Command: `npm start`
-4. Add environment variables
-5. Deploy
+1. Deploy to your preferred hosting (Render, Railway, etc.)
+2. Configure all required environment variables
+3. Ensure `OTP_PROVIDER` is set to your production SMS provider
 
-### Database (Supabase)
+### Database
 
-- Already hosted on Supabase
-- Ensure Row Level Security is configured for production
+- Supabase handles hosting and backups
+- Run `schema.sql` in the Supabase SQL editor for initial setup
+- Apply `rls_policies.sql` for Row Level Security
 
-## Features Roadmap
+## Ledger Semantics
 
-- [ ] Email/Password authentication fallback
-- [ ] Production SMS OTP integration (Twilio/Firebase)
-- [ ] More languages (Tamil, Telugu, etc.)
-- [ ] Export statements (PDF/Excel)
-- [ ] Recurring expenses
-- [ ] Payment gateway integration
-- [ ] Mobile apps (React Native)
+CoBalance uses a clear mental model for tracking money:
+
+| Transaction  | Meaning                      | Balance Effect        | Display              |
+| ------------ | ---------------------------- | --------------------- | -------------------- |
+| You Paid     | You gave money to a contact  | Contact owes you      | Green - "You'll get" |
+| You Received | You got money from a contact | You owe contact       | Red - "You owe"      |
+| Settled      | Balance is zero              | No outstanding amount | Gray - "Settled"     |
+
+This matches the Khatabook-style ledger approach where:
+
+- **Positive balance** = Money owed TO you
+- **Negative balance** = Money YOU owe
+
+## Settlement Flow
+
+When you want to clear the outstanding balance with a contact:
+
+1. Open the contact's detail page
+2. Click "Settle Up" (visible when balance is non-zero)
+3. Confirm the settlement amount in the modal
+4. A settlement transaction is created that clears the balance
+5. The contact's balance becomes zero
+
+Settlements are recorded as transactions, so you have a complete history of all financial activity.
+
+## Project Status
+
+CoBalance is in **active development**. The core ledger functionality is stable and production-ready:
+
+- OTP authentication: Stable
+- Personal ledger: Stable
+- Groups and expenses: Stable
+- Settlements: Stable
+- Reports and categories: Stable
 
 ## License
 
 MIT
-
-## Support
-
-For issues and questions, please create an issue in the repository.
