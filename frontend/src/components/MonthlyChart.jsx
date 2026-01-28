@@ -1,11 +1,5 @@
-/**
- * MonthlyChart - Bar chart showing daily totals for a month
- * 
- * Uses simple SVG bars, no external chart library.
- * 
- * @param {Array} dailyTotals - [{ day, spent, received }]
- * @param {boolean} loading - Show skeleton loader
- */
+// Simple bar chart for daily spending/received totals
+// Pure SVG, no chart library dependency
 const MonthlyChart = ({ dailyTotals = [], loading = false }) => {
     if (loading) {
         return (

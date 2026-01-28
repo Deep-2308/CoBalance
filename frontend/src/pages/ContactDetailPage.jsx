@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Send, Trash2, Clock, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Send, Trash2, Clock, ChevronDown, ChevronUp, CheckCircle, MessageCircle, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import api from '../services/api';
 import ReminderConfirmModal from '../components/ReminderConfirmModal';
 import SettlementConfirmModal from '../components/SettlementConfirmModal';
+import TransactionDetailsModal from '../components/TransactionDetailsModal';
 import CategoryBadge from '../components/CategoryBadge';
 import { getTransactionUIMeta, getBalanceUIMeta } from '../utils/transactionSemantics';
+import { openWhatsAppReminder } from '../utils/whatsappHelper';
+import { downloadStatement } from '../services/PdfService';
 
 const ContactDetailPage = () => {
     const { id } = useParams();
@@ -24,6 +27,10 @@ const ContactDetailPage = () => {
 
     // Settlement state
     const [showSettlementModal, setShowSettlementModal] = useState(false);
+
+    // Transaction details state
+    const [selectedTransaction, setSelectedTransaction] = useState(null);
+    const [showTransactionModal, setShowTransactionModal] = useState(false);
 
     useEffect(() => {
         fetchContactDetail();
@@ -112,6 +119,36 @@ const ContactDetailPage = () => {
             .slice(0, 2) || '?';
     };
 
+    // Handle WhatsApp reminder - opens deep link directly
+    const handleWhatsAppReminder = () => {
+        if (!contact?.mobile) {
+            alert('No phone number available for this contact.');
+            return;
+        }
+        
+        const success = openWhatsAppReminder(
+            contact.mobile,
+            contact.name,
+            parseFloat(currentBalance)
+        );
+        
+        if (!success) {
+            alert('Invalid phone number format.');
+        }
+    };
+
+    // Handle Download Statement PDF
+    const handleDownloadStatement = () => {
+        try {
+            // Simple toast notification
+            alert('Downloading Statement...');
+            downloadStatement(contact.name, transactions, currentBalance);
+        } catch (err) {
+            console.error('Failed to generate statement:', err);
+            alert('Failed to generate statement. Please try again.');
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-surface-50 flex items-center justify-center">
@@ -147,12 +184,33 @@ const ContactDetailPage = () => {
                             </div>
                         </div>
                     </div>
-                    <button
-                        onClick={handleDelete}
-                        className="p-2 text-danger-500 hover:bg-danger-50 rounded-xl transition-colors"
-                    >
-                        <Trash2 className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                        {/* WhatsApp Reminder Button - Only show when they owe you */}
+                        {canSendReminder() && (
+                            <button
+                                onClick={handleWhatsAppReminder}
+                                className="p-2 rounded-xl transition-colors hover:bg-green-50"
+                                title="Send Reminder via WhatsApp"
+                                style={{ color: '#25D366' }}
+                            >
+                                <MessageCircle className="w-5 h-5" />
+                            </button>
+                        )}
+                        {/* Download Statement Button */}
+                        <button
+                            onClick={handleDownloadStatement}
+                            className="p-2 rounded-xl transition-colors hover:bg-primary-50 text-primary-600"
+                            title="Download Statement PDF"
+                        >
+                            <Download className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={handleDelete}
+                            className="p-2 text-danger-500 hover:bg-danger-50 rounded-xl transition-colors"
+                        >
+                            <Trash2 className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -290,8 +348,12 @@ const ContactDetailPage = () => {
                                 return (
                                     <div 
                                         key={txn.id} 
-                                        className="card"
+                                        className="card card-interactive cursor-pointer"
                                         style={{ animationDelay: `${index * 50}ms` }}
+                                        onClick={() => {
+                                            setSelectedTransaction(txn);
+                                            setShowTransactionModal(true);
+                                        }}
                                     >
                                         <div className="flex justify-between items-start mb-2">
                                             <div>
@@ -359,6 +421,18 @@ const ContactDetailPage = () => {
                 balance={parseFloat(currentBalance)}
                 contactId={id}
                 onSettled={fetchContactDetail}
+            />
+
+            {/* Transaction Details Modal */}
+            <TransactionDetailsModal
+                isOpen={showTransactionModal}
+                onClose={() => {
+                    setShowTransactionModal(false);
+                    setSelectedTransaction(null);
+                }}
+                transaction={selectedTransaction}
+                onUpdated={fetchContactDetail}
+                onDeleted={fetchContactDetail}
             />
         </div>
     );
