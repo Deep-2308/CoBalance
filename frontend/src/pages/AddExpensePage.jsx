@@ -99,6 +99,7 @@ const AddExpensePage = () => {
                 }));
 
             const payload = {
+                group_id: groupId,
                 description: description.trim(),
                 amount: splitCalculation.totalAmount.toFixed(2),
                 paid_by: paidBy,

@@ -261,7 +261,7 @@ export const deleteContact = async (req, res) => {
 // Add transaction
 export const addTransaction = async (req, res) => {
     try {
-        const { contact_id, amount, transaction_type, note, date, category } = req.body;
+        const { contact_id, amount, transaction_type, note, date, category, split_details } = req.body;
 
         if (!contact_id || !amount || !transaction_type) {
             return res.status(400).json({ error: 'Contact, amount, and type required' });
@@ -287,7 +287,8 @@ export const addTransaction = async (req, res) => {
                     transaction_type,
                     note,
                     date: date || new Date().toISOString().split('T')[0],
-                    category: validCategory
+                    category: validCategory,
+                    split_details: split_details || null
                 })
                 .select()
                 .single();
@@ -297,7 +298,7 @@ export const addTransaction = async (req, res) => {
         } else {
             res.status(201).json({
                 success: true,
-                transaction: { id: 'mock-txn-id', contact_id, amount, transaction_type, note, date, category: validCategory }
+                transaction: { id: 'mock-txn-id', contact_id, amount, transaction_type, note, date, category: validCategory, split_details: split_details || null }
             });
         }
     } catch (error) {
@@ -305,6 +306,7 @@ export const addTransaction = async (req, res) => {
         res.status(500).json({ error: 'Failed to add transaction' });
     }
 };
+
 
 // Get ledger summary
 export const getLedgerSummary = async (req, res) => {
