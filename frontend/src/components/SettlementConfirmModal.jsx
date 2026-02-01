@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, CheckCircle, AlertCircle, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
-import api from '../services/api';
+import { useLedger } from '../context/LedgerContext';
 
 /**
  * SettlementModal - Modal for settling contact balance to zero
@@ -28,51 +28,31 @@ const SettlementConfirmModal = ({
     contactId,
     onSettled
 }) => {
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [showSuccess, setShowSuccess] = useState(false);
+    const { settleContactOptimistic } = useLedger();
 
-    const handleSettle = async () => {
-        setLoading(true);
+    const handleSettle = () => {
         setError('');
-
-        try {
-            // Settlement Algorithm:
-            // Positive balance (they owe you) → Create "debit" tx (You Received money)
-            // Negative balance (you owe them) → Create "credit" tx (You Paid money)
-            const transactionType = balance > 0 ? 'debit' : 'credit';
-            
-            const payload = {
-                contact_id: contactId,
-                amount: Math.abs(balance),
-                transaction_type: transactionType,
-                category: 'other', // "Settlement" is not in the category enum
-                note: 'Settlement via CoBalance',
-                date: new Date().toISOString().split('T')[0]
-            };
-
-            await api.post('/ledger/transactions', payload);
-            
-            // Show success state briefly
-            setShowSuccess(true);
-            
-            // Trigger re-fetch of contact data to show updated balance
-            if (onSettled) {
-                onSettled();
+        
+        // Use optimistic settlement - closes immediately
+        settleContactOptimistic(
+            contactId,
+            balance,
+            contactName,
+            () => {
+                // Success callback - trigger parent refresh and close
+                if (onSettled) {
+                    onSettled();
+                }
+            },
+            (errorMsg) => {
+                // Error callback - show error (rollback already handled)
+                setError(errorMsg);
             }
-            
-            // Close modal after brief success display
-            setTimeout(() => {
-                setShowSuccess(false);
-                onClose();
-            }, 1500);
-            
-        } catch (err) {
-            console.error('Settlement failed:', err);
-            setError(err.response?.data?.error || 'Failed to settle. Please try again.');
-        } finally {
-            setLoading(false);
-        }
+        );
+        
+        // Close modal immediately (optimistic)
+        onClose();
     };
 
     if (!isOpen) return null;
@@ -85,25 +65,6 @@ const SettlementConfirmModal = ({
         ? { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', iconBg: 'bg-emerald-100', amount: 'text-emerald-600' }
         : { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700', iconBg: 'bg-rose-100', amount: 'text-rose-600' };
 
-    // Success state UI
-    if (showSuccess) {
-        return (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-2xl w-full max-w-sm animate-slide-up p-8 text-center">
-                    <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="w-8 h-8 text-emerald-600" />
-                    </div>
-                    <h2 className="text-xl font-display font-bold text-primary-900 mb-2">
-                        Settled successfully!
-                    </h2>
-                    <p className="text-surface-500">
-                        Balance with {contactName} is now ₹0
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
             <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md animate-slide-up">
@@ -112,8 +73,7 @@ const SettlementConfirmModal = ({
                     <h2 className="text-lg font-display font-bold text-primary-900">Settle Up</h2>
                     <button
                         onClick={onClose}
-                        disabled={loading}
-                        className="p-2 hover:bg-surface-100 rounded-xl transition-colors disabled:opacity-50"
+                        className="p-2 hover:bg-surface-100 rounded-xl transition-colors"
                     >
                         <X className="w-5 h-5 text-surface-500" />
                     </button>
@@ -162,19 +122,17 @@ const SettlementConfirmModal = ({
                 <div className="p-4 border-t border-surface-100 space-y-2">
                     <button
                         onClick={handleSettle}
-                        disabled={loading}
                         className={`w-full py-3.5 rounded-xl font-display font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
                             isPositive 
                                 ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-soft'
                                 : 'bg-gradient-to-b from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 text-white shadow-soft'
-                        } disabled:opacity-50`}
+                        }`}
                     >
                         <CheckCircle className="w-5 h-5" />
-                        <span>{loading ? 'Settling...' : 'Settle Now'}</span>
+                        <span>Settle Now</span>
                     </button>
                     <button
                         onClick={onClose}
-                        disabled={loading}
                         className="btn btn-secondary w-full"
                     >
                         Cancel

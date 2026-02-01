@@ -13,7 +13,7 @@
     "clean:backend": "cd backend && if exist node_modules rmdir /s /q node_modules && cd ..",
     "clean:frontend": "cd frontend && if exist node_modules rmdir /s /q node_modules && cd ..",
     "fresh-start": "npm run clean && npm run install:all",
-    "build": "cd backend && npm run build && cd ../frontend && npm run build",
+    "build": "cd frontend && npm run build",
     "start": "concurrently --kill-others-on-fail --prefix \"[{name}]\" --names \"backend,frontend\" --prefix-colors \"cyan,magenta\" \"npm run start:backend\" \"npm run start:frontend\"",
     "start:backend": "cd backend && npm start",
     "start:frontend": "cd frontend && npm run preview"

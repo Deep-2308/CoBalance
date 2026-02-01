@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LedgerProvider } from './context/LedgerContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Auth Pages
@@ -28,6 +29,7 @@ import SecurityPage from './pages/SecurityPage';
 function App() {
     return (
         <AuthProvider>
+            <LedgerProvider>
             <Router>
                 <Routes>
                     {/* ============================================ */}
@@ -182,6 +184,7 @@ function App() {
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
             </Router>
+            </LedgerProvider>
         </AuthProvider>
     );
 }

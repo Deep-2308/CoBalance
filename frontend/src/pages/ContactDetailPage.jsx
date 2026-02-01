@@ -3,10 +3,12 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Send, Trash2, Clock, ChevronDown, ChevronUp, CheckCircle, MessageCircle, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import api from '../services/api';
+import { useLedger } from '../context/LedgerContext';
 import ReminderConfirmModal from '../components/ReminderConfirmModal';
 import SettlementConfirmModal from '../components/SettlementConfirmModal';
 import TransactionDetailsModal from '../components/TransactionDetailsModal';
 import CategoryBadge from '../components/CategoryBadge';
+import TransactionSkeleton from '../components/skeletons/TransactionSkeleton';
 import { getTransactionUIMeta, getBalanceUIMeta } from '../utils/transactionSemantics';
 import { openWhatsAppReminder } from '../utils/whatsappHelper';
 import { downloadStatement } from '../services/PdfService';
@@ -15,9 +17,15 @@ const ContactDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [contact, setContact] = useState(null);
-    const [transactions, setTransactions] = useState([]);
-    const [currentBalance, setCurrentBalance] = useState('0.00');
     const [loading, setLoading] = useState(true);
+    
+    // Get optimistic state from context
+    const { 
+        transactions, 
+        currentBalance, 
+        initializeForContact,
+        settleContactOptimistic 
+    } = useLedger();
     
     // Reminder state
     const [showReminderModal, setShowReminderModal] = useState(false);
@@ -41,8 +49,12 @@ const ContactDetailPage = () => {
         try {
             const response = await api.get(`/ledger/contacts/${id}`);
             setContact(response.data.contact);
-            setTransactions(response.data.transactions);
-            setCurrentBalance(response.data.currentBalance);
+            // Initialize context with fetched data
+            initializeForContact(
+                id,
+                response.data.transactions,
+                response.data.currentBalance
+            );
         } catch (err) {
             console.error('Failed to fetch contact:', err);
         } finally {
@@ -151,11 +163,8 @@ const ContactDetailPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-surface-50 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
-                    <div className="w-10 h-10 border-3 border-primary-200 border-t-primary-800 rounded-full animate-spin"></div>
-                    <p className="text-sm text-surface-500 font-medium">Loading...</p>
-                </div>
+            <div className="min-h-screen bg-surface-50 p-6">
+                <TransactionSkeleton />
             </div>
         );
     }
@@ -345,12 +354,15 @@ const ContactDetailPage = () => {
                         <div className="space-y-2">
                             {transactions.map((txn, index) => {
                                 const txnMeta = getTransactionUIMeta(txn.transaction_type);
+                                const isPending = txn.isPending === true;
                                 return (
                                     <div 
                                         key={txn.id} 
-                                        className="card card-interactive cursor-pointer"
+                                        className={`card ${isPending ? 'opacity-60' : 'card-interactive cursor-pointer'}`}
                                         style={{ animationDelay: `${index * 50}ms` }}
                                         onClick={() => {
+                                            // Disable click for pending transactions
+                                            if (isPending) return;
                                             setSelectedTransaction(txn);
                                             setShowTransactionModal(true);
                                         }}

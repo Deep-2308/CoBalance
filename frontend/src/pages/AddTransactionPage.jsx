@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Save, Plus } from 'lucide-react';
 import api from '../services/api';
+import { useLedger } from '../context/LedgerContext';
 import QuickAddContactModal from '../components/QuickAddContactModal';
 import CategorySelector from '../components/CategorySelector';
 import { getTransactionUIMeta, TRANSACTION_TYPES } from '../utils/transactionSemantics';
@@ -15,9 +16,9 @@ const AddTransactionPage = () => {
     const [note, setNote] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [category, setCategory] = useState('other');
-    const [loading, setLoading] = useState(false);
     const [showQuickAdd, setShowQuickAdd] = useState(false);
     const navigate = useNavigate();
+    const { addTransactionOptimistic, currentContactId } = useLedger();
 
     useEffect(() => {
         if (!contactId) {
@@ -55,28 +56,49 @@ const AddTransactionPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
 
-        try {
-            await api.post('/ledger/transactions', {
-                contact_id: contactId,
-                amount: parseFloat(amount),
-                transaction_type: transactionType,
-                note,
-                date,
-                category,
-            });
+        const payload = {
+            contact_id: contactId,
+            amount: parseFloat(amount),
+            transaction_type: transactionType,
+            note,
+            date,
+            category,
+        };
 
+        // Check if we're adding to the currently viewed contact (optimistic update possible)
+        if (contactId === currentContactId) {
+            // Use optimistic update - navigate immediately
+            addTransactionOptimistic(
+                payload,
+                () => {
+                    // Success callback - navigate happens immediately
+                },
+                (errorMsg) => {
+                    // Error callback - show alert (rollback already handled)
+                    alert(errorMsg);
+                }
+            );
+            
+            // Navigate immediately without waiting for API
             if (searchParams.get('contactId')) {
                 navigate(`/ledger/contact/${contactId}`);
             } else {
                 navigate('/ledger');
             }
-        } catch (err) {
-            console.error('Failed to add transaction:', err);
-            alert('Failed to add transaction');
-        } finally {
-            setLoading(false);
+        } else {
+            // Different contact or no context - use traditional API call
+            try {
+                await api.post('/ledger/transactions', payload);
+                if (searchParams.get('contactId')) {
+                    navigate(`/ledger/contact/${contactId}`);
+                } else {
+                    navigate('/ledger');
+                }
+            } catch (err) {
+                console.error('Failed to add transaction:', err);
+                alert('Failed to add transaction');
+            }
         }
     };
 
@@ -237,11 +259,11 @@ const AddTransactionPage = () => {
                 {/* Submit Button */}
                 <button
                     type="submit"
-                    disabled={loading || !contactId || !amount}
+                    disabled={!contactId || !amount}
                     className="btn btn-primary w-full flex items-center justify-center gap-2"
                 >
                     <Save className="w-4 h-4" />
-                    <span>{loading ? 'Saving...' : 'Save Transaction'}</span>
+                    <span>Save Transaction</span>
                 </button>
             </form>
 

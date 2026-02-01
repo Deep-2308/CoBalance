@@ -8,6 +8,7 @@ import MonthSelector from '../components/MonthSelector';
 import MonthlyChart from '../components/MonthlyChart';
 import MonthlySummaryCards from '../components/MonthlySummaryCards';
 import DailyTotalCard from '../components/DailyTotalCard';
+import DashboardSkeleton from '../components/skeletons/DashboardSkeleton';
 import api from '../services/api';
 import { getMonthlyReport } from '../services/reportsApi';
 import { useAuth } from '../context/AuthContext';
@@ -73,11 +74,8 @@ const DashboardPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-surface-50 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
-                    <div className="w-10 h-10 border-3 border-primary-200 border-t-primary-800 rounded-full animate-spin"></div>
-                    <p className="text-sm text-surface-500 font-medium">Loading...</p>
-                </div>
+            <div className="min-h-screen bg-surface-50">
+                <DashboardSkeleton />
             </div>
         );
     }

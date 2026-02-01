@@ -9,6 +9,7 @@ import CategorySummary from '../components/CategorySummary';
 import MonthSelector from '../components/MonthSelector';
 import MonthlyChart from '../components/MonthlyChart';
 import MonthlySummaryCards from '../components/MonthlySummaryCards';
+import LedgerSkeleton from '../components/skeletons/LedgerSkeleton';
 import api from '../services/api';
 import { getMonthlyReport } from '../services/reportsApi';
 import { getBalanceUIMeta } from '../utils/transactionSemantics';
@@ -187,12 +188,7 @@ const LedgerPage = () => {
                 <CategorySummary />
 
                 {loading ? (
-                    <div className="flex items-center justify-center py-16">
-                        <div className="flex flex-col items-center gap-3">
-                            <div className="w-10 h-10 border-3 border-primary-200 border-t-primary-800 rounded-full animate-spin"></div>
-                            <p className="text-sm text-surface-500 font-medium">Loading contacts...</p>
-                        </div>
-                    </div>
+                    <LedgerSkeleton />
                 ) : contacts.length > 0 ? (
                     <div className="space-y-2 mt-4">
                         {contacts.map((contact, index) => (
