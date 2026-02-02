@@ -9,6 +9,31 @@ import FilterPanel from '../components/FilterPanel';
 import SortDropdown from '../components/SortDropdown';
 import CategoryBadge from '../components/CategoryBadge';
 
+// LocalStorage helper functions
+const STORAGE_KEY_PREFIX = 'cobalance_group_';
+
+const getStorageKey = (groupId) => `${STORAGE_KEY_PREFIX}${groupId}`;
+
+const loadFromLocalStorage = (groupId) => {
+    try {
+        const cached = localStorage.getItem(getStorageKey(groupId));
+        if (cached) {
+            return JSON.parse(cached);
+        }
+    } catch (err) {
+        console.warn('Failed to load from localStorage:', err);
+    }
+    return null;
+};
+
+const saveToLocalStorage = (groupId, data) => {
+    try {
+        localStorage.setItem(getStorageKey(groupId), JSON.stringify(data));
+    } catch (err) {
+        console.warn('Failed to save to localStorage:', err);
+    }
+};
+
 const GroupDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -34,6 +59,16 @@ const GroupDetailPage = () => {
     });
     const [sortBy, setSortBy] = useState('newest');
 
+    // Load cached data on mount for instant display
+    useEffect(() => {
+        const cached = loadFromLocalStorage(id);
+        if (cached) {
+            if (cached.group) setGroup(cached.group);
+            if (cached.members) setMembers(cached.members);
+            if (cached.expenses) setExpenses(cached.expenses);
+        }
+    }, [id]);
+
     const fetchGroupDetail = useCallback(async () => {
         try {
             // Build query params for expense filtering
@@ -50,6 +85,13 @@ const GroupDetailPage = () => {
             setGroup(response.data.group);
             setMembers(response.data.members);
             setExpenses(response.data.expenses);
+            
+            // Save to localStorage for persistence across refreshes
+            saveToLocalStorage(id, {
+                group: response.data.group,
+                members: response.data.members,
+                expenses: response.data.expenses
+            });
         } catch (err) {
             console.error('Failed to fetch group:', err);
         } finally {

@@ -12,6 +12,7 @@ import DashboardSkeleton from '../components/skeletons/DashboardSkeleton';
 import api from '../services/api';
 import { getMonthlyReport } from '../services/reportsApi';
 import { useAuth } from '../context/AuthContext';
+import SmartEntry from '../components/transactions/SmartEntry';
 
 const DashboardPage = () => {
     const { user } = useAuth();
@@ -96,6 +97,11 @@ const DashboardPage = () => {
             </div>
 
             <div className="page-container -mt-4">
+                {/* Magic Input - Smart Transaction Entry */}
+                <div className="mb-6">
+                    <SmartEntry />
+                </div>
+
                 {/* Month Selector */}
                 <div className="mb-4">
                     <MonthSelector
