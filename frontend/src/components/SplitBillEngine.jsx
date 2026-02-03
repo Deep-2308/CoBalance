@@ -295,12 +295,14 @@ const SplitBillEngine = ({ totalAmount, participants = [], onSubmit }) => {
         </div>
       )}
 
-      {/* Submit Button */}
+      {/* Submit Button - Disabled when split is invalid ("UI Jail" state) */}
       <button
         type="button"
         onClick={handleSubmit}
         disabled={!validation.isValid}
-        className="btn btn-accent w-full"
+        className={`btn btn-accent w-full ${
+          !validation.isValid ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
+        }`}
       >
         <Check className="w-5 h-5 mr-2" />
         Confirm Split

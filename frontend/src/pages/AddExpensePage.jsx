@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Users, Check } from 'lucide-react';
+import { ArrowLeft, Save, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import CategorySelector from '../components/CategorySelector';
+import SplitBillEngine from '../components/SplitBillEngine';
 
 const AddExpensePage = () => {
     const { id: groupId } = useParams();
@@ -15,11 +16,13 @@ const AddExpensePage = () => {
     const [amount, setAmount] = useState('');
     const [paidBy, setPaidBy] = useState('');
     const [members, setMembers] = useState([]);
-    const [selectedMembers, setSelectedMembers] = useState({});
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [category, setCategory] = useState('other');
     const [loading, setLoading] = useState(false);
     const [showPaidByModal, setShowPaidByModal] = useState(false);
+    
+    // Split result from SplitBillEngine
+    const [splitResult, setSplitResult] = useState(null);
 
     useEffect(() => {
         fetchGroupDetail();
@@ -36,38 +39,25 @@ const AddExpensePage = () => {
             const response = await api.get(`/groups/${groupId}`);
             const groupMembers = response.data.members || [];
             setMembers(groupMembers);
-
-            // Initialize with all members selected by default
-            const initialSelection = {};
-            groupMembers.forEach(member => {
-                initialSelection[member.id] = true;
-            });
-            setSelectedMembers(initialSelection);
         } catch (err) {
             console.error('Failed to fetch group:', err);
             alert('Failed to load group details');
         }
     };
 
-    // Calculate split amounts in real-time
-    const splitCalculation = useMemo(() => {
-        const totalAmount = parseFloat(amount) || 0;
-        const selectedCount = Object.values(selectedMembers).filter(Boolean).length;
-        const perPerson = selectedCount > 0 ? totalAmount / selectedCount : 0;
+    // Get total amount as number
+    const totalAmount = parseFloat(amount) || 0;
 
-        return {
-            totalAmount,
-            selectedCount,
-            perPerson: perPerson.toFixed(2)
-        };
-    }, [amount, selectedMembers]);
-
-    const handleMemberToggle = (memberId) => {
-        setSelectedMembers(prev => ({
-            ...prev,
-            [memberId]: !prev[memberId]
-        }));
+    // Handle split confirmation from SplitBillEngine
+    const handleSplitConfirm = (splitDetails) => {
+        setSplitResult(splitDetails);
     };
+
+    // Convert members to participants format for SplitBillEngine
+    const participants = members.map(m => ({
+        id: m.id,
+        name: m.id === user?.id ? 'You' : m.name
+    }));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -82,26 +72,24 @@ const AddExpensePage = () => {
             return;
         }
 
-        if (splitCalculation.selectedCount === 0) {
-            alert('Please select at least one person to split with');
+        if (!splitResult || !splitResult.splits || splitResult.splits.length === 0) {
+            alert('Please confirm the split before saving');
             return;
         }
 
         setLoading(true);
 
         try {
-            // Build split_between array
-            const splits = members
-                .filter(member => selectedMembers[member.id])
-                .map(member => ({
-                    user_id: member.id,
-                    amount: splitCalculation.perPerson
-                }));
+            // Build split_between array from splitResult
+            const splits = splitResult.splits.map(split => ({
+                user_id: split.userId,
+                amount: parseFloat(split.amount).toFixed(2)
+            }));
 
             const payload = {
                 group_id: groupId,
                 description: description.trim(),
-                amount: splitCalculation.totalAmount.toFixed(2),
+                amount: totalAmount.toFixed(2),
                 paid_by: paidBy,
                 split_between: splits,
                 date,
@@ -212,83 +200,37 @@ const AddExpensePage = () => {
                     </button>
                 </div>
 
-                {/* Split Info */}
-                <div className="mb-4">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Users className="w-5 h-5 text-blue-600" />
-                                <span className="text-sm font-medium text-blue-900">
-                                    Split equally
-                                </span>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-sm text-blue-700">
-                                    {splitCalculation.selectedCount} {splitCalculation.selectedCount === 1 ? 'person' : 'people'}
+                {/* Split Bill Engine - with validation UI */}
+                {totalAmount > 0 && participants.length > 0 && (
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                            Split Options
+                        </label>
+                        <SplitBillEngine
+                            totalAmount={totalAmount}
+                            participants={participants}
+                            onSubmit={handleSplitConfirm}
+                        />
+                        {splitResult && (
+                            <div className="mt-3 p-3 bg-success-50 border border-success-200 rounded-lg">
+                                <p className="text-sm text-success-700 font-medium">
+                                    ✓ Split confirmed ({splitResult.mode} mode)
                                 </p>
-                                <p className="text-lg font-bold text-blue-900">
-                                    ₹{splitCalculation.perPerson} each
-                                </p>
                             </div>
-                        </div>
+                        )}
                     </div>
-                </div>
+                )}
 
-                {/* Member Selection */}
-                <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                        Split with ({splitCalculation.selectedCount}/{members.length} selected)
-                    </label>
-                    <div className="space-y-2">
-                        {members.map((member) => {
-                            const isSelected = selectedMembers[member.id];
-                            const isYou = member.id === user?.id;
-
-                            return (
-                                <div
-                                    key={member.id}
-                                    onClick={() => handleMemberToggle(member.id)}
-                                    className={`card cursor-pointer transition-all ${
-                                        isSelected
-                                            ? 'border-primary-600 bg-primary-50'
-                                            : 'border-gray-200 hover:border-gray-300'
-                                    }`}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                                                isSelected ? 'bg-primary-100' : 'bg-gray-100'
-                                            }`}>
-                                                <span className={`font-semibold ${
-                                                    isSelected ? 'text-primary-700' : 'text-gray-600'
-                                                }`}>
-                                                    {member.name?.charAt(0)?.toUpperCase()}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900">
-                                                    {isYou ? 'You' : member.name}
-                                                </p>
-                                                {isSelected && (
-                                                    <p className="text-sm font-medium text-primary-600">
-                                                        ₹{splitCalculation.perPerson}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
-                                            isSelected
-                                                ? 'bg-primary-600 border-primary-600'
-                                                : 'border-gray-300'
-                                        }`}>
-                                            {isSelected && <Check className="w-4 h-4 text-white" />}
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                {/* Prompt to enter amount first */}
+                {(totalAmount <= 0 || participants.length === 0) && (
+                    <div className="mb-6 p-4 bg-surface-100 border border-surface-200 rounded-lg text-center">
+                        <p className="text-surface-600 text-sm">
+                            {participants.length === 0 
+                                ? 'Loading group members...' 
+                                : 'Enter an amount above to configure the split'}
+                        </p>
                     </div>
-                </div>
+                )}
 
                 {/* Date */}
                 <div className="mb-6">
@@ -308,7 +250,7 @@ const AddExpensePage = () => {
                 <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
                     <button
                         type="submit"
-                        disabled={loading || !description || !amount || splitCalculation.selectedCount === 0}
+                        disabled={loading || !description || !amount || !splitResult}
                         className="btn btn-primary w-full flex items-center justify-center gap-2 text-lg py-4 disabled:opacity-50"
                     >
                         <Save className="w-5 h-5" />
