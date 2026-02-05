@@ -8,6 +8,7 @@ import MonthSelector from '../components/MonthSelector';
 import MonthlyChart from '../components/MonthlyChart';
 import MonthlySummaryCards from '../components/MonthlySummaryCards';
 import DailyTotalCard from '../components/DailyTotalCard';
+import CategoryPieChart from '../components/CategoryPieChart';
 import DashboardSkeleton from '../components/skeletons/DashboardSkeleton';
 import api from '../services/api';
 import { getMonthlyReport } from '../services/reportsApi';
@@ -133,6 +134,14 @@ const DashboardPage = () => {
                 <div className="mb-4">
                     <MonthlyChart
                         dailyTotals={monthlyData?.dailyTotals}
+                        loading={monthLoading}
+                    />
+                </div>
+
+                {/* Category Pie Chart */}
+                <div className="mb-4">
+                    <CategoryPieChart
+                        transactions={monthlyData?.transactions}
                         loading={monthLoading}
                     />
                 </div>
