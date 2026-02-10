@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, useRef } from 'react';
+import toast from 'react-hot-toast';
 import api from '../services/api';
 
 /**
@@ -130,7 +131,7 @@ export const LedgerProvider = ({ children }) => {
       if (onError) {
         onError(error.response?.data?.error || 'Failed to add transaction');
       } else {
-        alert('Failed to add transaction');
+        toast.error('Failed to add transaction ❌');
       }
     }
   }, [transactions, currentBalance, calculateNewBalance]);
@@ -216,7 +217,7 @@ export const LedgerProvider = ({ children }) => {
       if (onError) {
         onError(error.response?.data?.error || 'Failed to settle. Please try again.');
       } else {
-        alert('Failed to settle. Please try again.');
+        toast.error('Settlement failed. Please try again ❌');
       }
     }
   }, [transactions, currentBalance]);

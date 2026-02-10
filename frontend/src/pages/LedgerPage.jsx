@@ -36,13 +36,13 @@ const LedgerPage = () => {
     const [monthlyData, setMonthlyData] = useState(null);
     const [monthLoading, setMonthLoading] = useState(true);
 
-    // Debounce search for better performance
+    // Debounce search - only triggers API call after 500ms of no typing
     const [debouncedSearch, setDebouncedSearch] = useState('');
     
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
-        }, 300);
+        }, 500);
         return () => clearTimeout(timer);
     }, [searchTerm]);
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Save, Plus } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useLedger } from '../context/LedgerContext';
 import QuickAddContactModal from '../components/QuickAddContactModal';
@@ -17,6 +18,7 @@ const AddTransactionPage = () => {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [category, setCategory] = useState('other');
     const [showQuickAdd, setShowQuickAdd] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
     const { addTransactionOptimistic, currentContactId } = useLedger();
 
@@ -56,6 +58,9 @@ const AddTransactionPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
 
         const payload = {
             contact_id: contactId,
@@ -72,11 +77,12 @@ const AddTransactionPage = () => {
             addTransactionOptimistic(
                 payload,
                 () => {
-                    // Success callback - navigate happens immediately
+                    // Success callback
+                    toast.success('Transaction added ✅');
                 },
                 (errorMsg) => {
-                    // Error callback - show alert (rollback already handled)
-                    alert(errorMsg);
+                    // Error callback - rollback already handled
+                    toast.error(errorMsg || 'Failed to add transaction. Please retry ❌');
                 }
             );
             
@@ -86,10 +92,12 @@ const AddTransactionPage = () => {
             } else {
                 navigate('/ledger');
             }
+            setIsSubmitting(false);
         } else {
             // Different contact or no context - use traditional API call
             try {
                 await api.post('/ledger/transactions', payload);
+                toast.success('Transaction added ✅');
                 if (searchParams.get('contactId')) {
                     navigate(`/ledger/contact/${contactId}`);
                 } else {
@@ -97,7 +105,9 @@ const AddTransactionPage = () => {
                 }
             } catch (err) {
                 console.error('Failed to add transaction:', err);
-                alert('Failed to add transaction');
+                toast.error(err.response?.data?.error || 'Failed to add transaction. Please retry ❌');
+            } finally {
+                setIsSubmitting(false);
             }
         }
     };
@@ -259,11 +269,20 @@ const AddTransactionPage = () => {
                 {/* Submit Button */}
                 <button
                     type="submit"
-                    disabled={!contactId || !amount}
-                    className="btn btn-primary w-full flex items-center justify-center gap-2"
+                    disabled={!contactId || !amount || isSubmitting}
+                    className="btn btn-primary w-full flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-60"
                 >
-                    <Save className="w-4 h-4" />
-                    <span>Save Transaction</span>
+                    {isSubmitting ? (
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Saving…</span>
+                        </>
+                    ) : (
+                        <>
+                            <Save className="w-4 h-4" />
+                            <span>Save Transaction</span>
+                        </>
+                    )}
                 </button>
             </form>
 

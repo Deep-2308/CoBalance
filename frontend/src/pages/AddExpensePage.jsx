@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Check } from 'lucide-react';
+import { ArrowLeft, Save, Check, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import CategorySelector from '../components/CategorySelector';
@@ -41,7 +42,7 @@ const AddExpensePage = () => {
             setMembers(groupMembers);
         } catch (err) {
             console.error('Failed to fetch group:', err);
-            alert('Failed to load group details');
+            toast.error('Failed to load group details');
         }
     };
 
@@ -63,17 +64,17 @@ const AddExpensePage = () => {
         e.preventDefault();
 
         if (!description.trim()) {
-            alert('Please add a description');
+            toast.error('Please add a description');
             return;
         }
 
         if (!amount || parseFloat(amount) <= 0) {
-            alert('Please enter a valid amount');
+            toast.error('Please enter a valid amount');
             return;
         }
 
         if (!splitResult || !splitResult.splits || splitResult.splits.length === 0) {
-            alert('Please confirm the split before saving');
+            toast.error('Please confirm the split before saving');
             return;
         }
 
@@ -98,11 +99,12 @@ const AddExpensePage = () => {
 
             await api.post(`/groups/${groupId}/expenses`, payload);
 
+            toast.success('Expense added ✅');
             // Navigate back to group detail
             navigate(`/groups/${groupId}`);
         } catch (err) {
             console.error('Failed to add expense:', err);
-            alert(err.response?.data?.error || 'Failed to add expense');
+            toast.error(err.response?.data?.error || 'Failed to add expense. Please retry ❌');
         } finally {
             setLoading(false);
         }
@@ -251,10 +253,19 @@ const AddExpensePage = () => {
                     <button
                         type="submit"
                         disabled={loading || !description || !amount || !splitResult}
-                        className="btn btn-primary w-full flex items-center justify-center gap-2 text-lg py-4 disabled:opacity-50"
+                        className="btn btn-primary w-full flex items-center justify-center gap-2 text-lg py-4 disabled:opacity-60 transition-all duration-200"
                     >
-                        <Save className="w-5 h-5" />
-                        <span>{loading ? 'Saving...' : 'Save Expense'}</span>
+                        {loading ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <span>Saving…</span>
+                            </>
+                        ) : (
+                            <>
+                                <Save className="w-5 h-5" />
+                                <span>Save Expense</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </form>
