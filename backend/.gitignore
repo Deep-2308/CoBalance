@@ -3,24 +3,11 @@
 .env.*
 !.env.example
 
-# Node Modules
-node_modules/
-
 # Build Outputs
 dist/
 build/
-frontend/dist/
-backend/dist/
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# OS Files
-.DS_Store
-Thumbs.db
-
-# IDE Files
-.vscode/
-.idea/
