@@ -46,7 +46,7 @@ const WelcomePage = () => {
                 <div className="w-full max-w-sm space-y-4 animate-slide-up">
                     {/* Login Button */}
                     <button
-                        onClick={() => navigate('/auth/login')}
+                        onClick={() => navigate('/auth/login-password')}
                         className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white text-primary-900 font-display font-semibold rounded-xl shadow-xl shadow-white/10 hover:shadow-2xl hover:shadow-white/20 transform hover:-translate-y-0.5 transition-all duration-200"
                     >
                         <LogIn className="w-5 h-5" />
@@ -56,7 +56,7 @@ const WelcomePage = () => {
 
                     {/* Create Account Button */}
                     <button
-                        onClick={() => navigate('/auth/register')}
+                        onClick={() => navigate('/auth/signup-password')}
                         className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-accent-500 to-accent-600 text-white font-display font-semibold rounded-xl shadow-xl shadow-accent-500/30 hover:shadow-2xl hover:shadow-accent-500/40 transform hover:-translate-y-0.5 transition-all duration-200"
                     >
                         <UserPlus className="w-5 h-5" />

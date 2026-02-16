@@ -1,29 +1,34 @@
 import express from 'express';
 import { 
-    sendLoginOTP, 
-    verifyLoginOTP, 
-    sendRegisterOTP, 
-    verifyRegisterOTP, 
-    completeRegistration,
+    signupWithPassword,
+    loginWithPassword,
+    forgotPassword,
+    resetPassword,
+    setPassword,
     updateProfile, 
     getCurrentUser 
 } from '../controllers/auth.controller.js';
 import { authenticateToken } from '../middleware/auth.middleware.js';
+import { loginLimiter, passwordResetLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
 // ============================================
-// LOGIN FLOW (user must exist)
+// EMAIL/PASSWORD AUTH (Public)
 // ============================================
-router.post('/login/send-otp', sendLoginOTP);
-router.post('/login/verify-otp', verifyLoginOTP);
+router.post('/signup-password', signupWithPassword);
+router.post('/login-password', loginLimiter, loginWithPassword);
 
 // ============================================
-// REGISTER FLOW (user must NOT exist)
+// PASSWORD RECOVERY (Public, rate-limited)
 // ============================================
-router.post('/register/send-otp', sendRegisterOTP);
-router.post('/register/verify-otp', verifyRegisterOTP);
-router.post('/register/complete', completeRegistration);
+router.post('/forgot-password', passwordResetLimiter, forgotPassword);
+router.post('/reset-password', resetPassword);
+
+// ============================================
+// LEGACY ACCOUNT MIGRATION (Public, rate-limited)
+// ============================================
+router.post('/set-password', passwordResetLimiter, setPassword);
 
 // ============================================
 // PROTECTED ROUTES

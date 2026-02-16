@@ -16,6 +16,7 @@ import {
 import BottomNav from '../components/BottomNav';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { getDisplayEmail, getDisplayPhone } from '../utils/identifierHelper';
 
 const ProfilePage = () => {
     const { user, logout } = useAuth();
@@ -126,22 +127,43 @@ const ProfilePage = () => {
 
                     {/* Contact Info */}
                     <div className="space-y-1">
-                        <div className="flex items-center gap-3 py-3 border-b border-surface-100">
-                            <Phone className="w-5 h-5 text-surface-400" />
-                            <div className="flex-1 min-w-0">
-                                <p className="text-2xs text-surface-400 uppercase tracking-wide">Phone</p>
-                                <p className="text-primary-900 font-medium truncate">{profile?.mobile || '—'}</p>
+                        {/* Phone — from internal email or mobile field */}
+                        {getDisplayPhone(profile || user) && (
+                            <div className="flex items-center gap-3 py-3 border-b border-surface-100">
+                                <Phone className="w-5 h-5 text-surface-400" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-2xs text-surface-400 uppercase tracking-wide">Phone</p>
+                                    <p className="text-primary-900 font-medium truncate">
+                                        {getDisplayPhone(profile || user)}
+                                    </p>
+                                </div>
+                                <span className="badge badge-success">Verified</span>
                             </div>
-                            <span className="badge badge-success">Verified</span>
-                        </div>
+                        )}
 
-                        <div className="flex items-center gap-3 py-3 border-b border-surface-100">
-                            <Mail className="w-5 h-5 text-surface-400" />
-                            <div className="flex-1 min-w-0">
-                                <p className="text-2xs text-surface-400 uppercase tracking-wide">Email</p>
-                                <p className="text-primary-900 truncate">{profile?.email || 'Not added'}</p>
+                        {/* Email — hidden if it's an internal phone-email */}
+                        {getDisplayEmail(profile?.email) && (
+                            <div className="flex items-center gap-3 py-3 border-b border-surface-100">
+                                <Mail className="w-5 h-5 text-surface-400" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-2xs text-surface-400 uppercase tracking-wide">Email</p>
+                                    <p className="text-primary-900 truncate">
+                                        {getDisplayEmail(profile?.email)}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* Fallback: no phone or email to show */}
+                        {!getDisplayPhone(profile || user) && !getDisplayEmail(profile?.email) && (
+                            <div className="flex items-center gap-3 py-3 border-b border-surface-100">
+                                <Mail className="w-5 h-5 text-surface-400" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-2xs text-surface-400 uppercase tracking-wide">Contact</p>
+                                    <p className="text-surface-400 truncate">Not added</p>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="flex items-center gap-3 py-3">
                             <Globe className="w-5 h-5 text-surface-400" />

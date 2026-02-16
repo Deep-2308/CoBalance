@@ -17,7 +17,7 @@ import { getBalanceUIMeta } from '../utils/transactionSemantics';
 const LedgerPage = () => {
     const [contacts, setContacts] = useState([]);
     const [loading, setLoading] = useState(true);
-    
+
     // Search and filter state
     const [searchTerm, setSearchTerm] = useState('');
     const [filters, setFilters] = useState({
@@ -38,7 +38,7 @@ const LedgerPage = () => {
 
     // Debounce search - only triggers API call after 500ms of no typing
     const [debouncedSearch, setDebouncedSearch] = useState('');
-    
+
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
@@ -50,7 +50,7 @@ const LedgerPage = () => {
     useEffect(() => {
         const startDate = new Date(selectedYear, selectedMonth - 1, 1);
         const endDate = new Date(selectedYear, selectedMonth, 0);
-        
+
         setFilters(prev => ({
             ...prev,
             dateFrom: startDate.toISOString().split('T')[0],
@@ -79,7 +79,7 @@ const LedgerPage = () => {
     const fetchContacts = useCallback(async () => {
         try {
             setLoading(true);
-            
+
             // Build query params
             const params = new URLSearchParams();
             if (debouncedSearch) params.append('search', debouncedSearch);
@@ -92,7 +92,7 @@ const LedgerPage = () => {
 
             const url = `/ledger/contacts${params.toString() ? '?' + params.toString() : ''}`;
             const response = await api.get(url);
-            
+
             if (response.data.mock || !response.data.contacts) {
                 setContacts([]);
             } else {
@@ -229,8 +229,8 @@ const LedgerPage = () => {
                             <User className="w-8 h-8 text-surface-300" />
                         </div>
                         <p className="empty-state-title">
-                            {debouncedSearch || Object.values(filters).some(v => v) 
-                                ? 'No contacts match your filters' 
+                            {debouncedSearch || Object.values(filters).some(v => v)
+                                ? 'No contacts match your filters'
                                 : 'No contacts yet'}
                         </p>
                         <p className="empty-state-text">

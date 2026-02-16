@@ -47,7 +47,6 @@ export const getMonthlyReport = async (req, res) => {
                     id,
                     name,
                     transactions (
-                        id,
                         amount,
                         transaction_type,
                         note,
@@ -90,7 +89,6 @@ export const getMonthlyReport = async (req, res) => {
 
                         // Add to transactions list
                         monthTransactions.push({
-                            id: txn.id,
                             contactName: contact.name,
                             amount: txn.amount,
                             type: txn.transaction_type,

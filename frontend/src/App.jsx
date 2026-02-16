@@ -6,10 +6,11 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 // Auth Pages
 import WelcomePage from './pages/WelcomePage';
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import OTPVerifyPage from './pages/auth/OTPVerifyPage';
-import RegistrationFormPage from './pages/auth/RegistrationFormPage';
+import LoginWithPasswordPage from './pages/auth/LoginWithPasswordPage';
+import SignupWithPasswordPage from './pages/auth/SignupWithPasswordPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+import SetPasswordPage from './pages/auth/SetPasswordPage';
 
 // Main Pages
 import DashboardPage from './pages/DashboardPage';
@@ -37,20 +38,21 @@ function App() {
                     {/* AUTH ROUTES - Public */}
                     {/* ============================================ */}
                     
-                    {/* Welcome page with Login/Register buttons */}
+                    {/* Welcome page */}
                     <Route path="/auth" element={<WelcomePage />} />
                     
-                    {/* Login flow */}
-                    <Route path="/auth/login" element={<LoginPage />} />
+                    {/* Password auth (primary) */}
+                    <Route path="/auth/login-password" element={<LoginWithPasswordPage />} />
+                    <Route path="/auth/signup-password" element={<SignupWithPasswordPage />} />
+                    <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+                    <Route path="/auth/set-password" element={<SetPasswordPage />} />
                     
-                    {/* Register flow */}
-                    <Route path="/auth/register" element={<RegisterPage />} />
-                    
-                    {/* OTP verification (shared by login & register) */}
-                    <Route path="/auth/verify-otp" element={<OTPVerifyPage />} />
-                    
-                    {/* Registration completion form */}
-                    <Route path="/auth/register/complete" element={<RegistrationFormPage />} />
+                    {/* Legacy OTP routes — redirect to password auth */}
+                    <Route path="/auth/login" element={<Navigate to="/auth/login-password" replace />} />
+                    <Route path="/auth/register" element={<Navigate to="/auth/signup-password" replace />} />
+                    <Route path="/auth/verify-otp" element={<Navigate to="/auth/login-password" replace />} />
+                    <Route path="/auth/register/complete" element={<Navigate to="/auth/signup-password" replace />} />
 
                     {/* ============================================ */}
                     {/* PROTECTED ROUTES */}

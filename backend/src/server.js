@@ -98,5 +98,4 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 CoBalance API running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔐 OTP Provider: ${process.env.OTP_PROVIDER || 'mock'}`);
 });

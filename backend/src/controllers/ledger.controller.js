@@ -55,7 +55,7 @@ export const getContacts = async (req, res) => {
                 .from('contacts')
                 .select(`
                     *,
-                    transactions (id, amount, transaction_type, date)
+                    transactions (amount, transaction_type, date)
                 `)
                 .eq('user_id', userId);
 

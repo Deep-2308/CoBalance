@@ -140,7 +140,6 @@ export const getDashboardSummary = async (req, res) => {
         name,
         type,
         transactions (
-          id,
           amount,
           transaction_type,
           note,

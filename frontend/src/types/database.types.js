@@ -31,17 +31,6 @@
  * @property {string} language - Language preference ('en', 'hi', etc., max 10 chars)
  * @property {ISODateString} created_at - Account creation timestamp
  * @property {ISODateString} updated_at - Last update timestamp
- */
-
-/**
- * @typedef {Object} OTPCode
- * @property {UUID} id - Unique OTP record identifier
- * @property {string} mobile - Mobile number (max 15 chars)
- * @property {string} otp - 6-digit OTP code
- * @property {ISODateString} expires_at - OTP expiration timestamp
- * @property {boolean} verified - Whether OTP has been verified
- * @property {ISODateString} created_at - OTP generation timestamp
- */
 
 // ==================== LEDGER TYPES ====================
 

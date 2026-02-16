@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 // VITE_API_BASE_URL should be the full base URL including /api
-// e.g., https://cobalance-api.onrender.com/api or http://localhost:5000/api
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
@@ -9,43 +8,55 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 second timeout
+  timeout: 10000,
 });
 
-// Request interceptor - attach token
+// Request interceptor — attach JWT token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('🔐 API Request with token:', config.method.toUpperCase(), config.url);
-    } else {
-      console.warn('⚠️ API Request without token:', config.method.toUpperCase(), config.url);
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - handle errors
+// Response interceptor — handle 401/403 gracefully
 api.interceptors.response.use(
-  (response) => {
-    console.log('✅ API Response:', response.config.method.toUpperCase(), response.config.url, response.status);
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response) {
-      console.error('❌ API Error:', error.response.status, error.response.data);
-      
-      if (error.response.status === 401 || error.response.status === 403) {
-        console.error('🚪 Unauthorized! Logging out...');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+      const { status } = error.response;
+
+      // Session expired or invalid token
+      if (status === 401 || status === 403) {
+        // Only auto-logout for token issues, not for auth page requests
+        const url = error.config?.url || '';
+        const isAuthRoute = url.includes('/auth/');
+
+        if (!isAuthRoute) {
+          console.warn(`🚪 Session expired — [${status}] ${url}`, error.response.data);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+
+          // Dispatch custom event so AuthContext can react
+          window.dispatchEvent(new CustomEvent('auth:session-expired'));
+        }
       }
-    } else {
-      console.error('❌ Network Error:', error.message);
+
+      // Rate limited
+      if (status === 429) {
+        console.warn('⏱️ Rate limited:', error.response.data?.error);
+      }
+
+      // Account locked
+      if (status === 423) {
+        console.warn('🔒 Account locked:', error.response.data?.error);
+      }
     }
+
     return Promise.reject(error);
   }
 );
