@@ -66,8 +66,14 @@ export const signupWithPassword = async (req, res) => {
             return res.status(400).json({ error: 'Name must be at least 2 characters' });
         }
 
-        // Check if user already exists
-        const existingUser = await findUserByIdentifier(email.trim(), 'email');
+        // Check if user already exists (using RPC to bypass schema cache)
+        let existingUser;
+        if (supabase) {
+            const { data } = await supabase.rpc('find_user_by_email', {
+                p_email: email.trim()
+            });
+            existingUser = data;
+        }
         if (existingUser) {
             return res.status(409).json({
                 error: 'An account with this email already exists. Please login instead.',
@@ -79,19 +85,15 @@ export const signupWithPassword = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
 
-        // Create user
+        // Create user (using RPC to bypass PostgREST schema cache)
         let user;
 
         if (supabase) {
-            const { data: newUser, error } = await supabase
-                .from('users')
-                .insert({
-                    email: email.trim(),
-                    name: name.trim(),
-                    password_hash: passwordHash
-                })
-                .select()
-                .single();
+            const { data: newUser, error } = await supabase.rpc('create_user_with_password', {
+                p_email: email.trim(),
+                p_name: name.trim(),
+                p_password_hash: passwordHash
+            });
 
             if (error) {
                 console.error('Create user error:', error);

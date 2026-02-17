@@ -1,147 +1,180 @@
-import { createContext, useState, useEffect, useContext, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import { transformForApi } from '../utils/identifierHelper';
+import {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+  useRef,
+} from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../services/api";
+import { transformForApi } from "../utils/identifierHelper";
 
 const AuthContext = createContext(null);
 
 // Decode JWT expiration (seconds since epoch)
 const getTokenExpiry = (token) => {
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.exp ? payload.exp * 1000 : null; // Convert to ms
-    } catch {
-        return null;
-    }
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.exp ? payload.exp * 1000 : null; // Convert to ms
+  } catch {
+    return null;
+  }
 };
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [sessionExpired, setSessionExpired] = useState(false);
-    const expiryTimerRef = useRef(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const expiryTimerRef = useRef(null);
 
-    // ── Logout ──
-    const logout = useCallback(() => {
-        clearTimeout(expiryTimerRef.current);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setUser(null);
-    }, []);
+  // ── Logout ──
+  const logout = useCallback(() => {
+    clearTimeout(expiryTimerRef.current);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+  }, []);
 
-    // ── Schedule auto-logout when JWT expires ──
-    const scheduleAutoLogout = useCallback((token) => {
-        clearTimeout(expiryTimerRef.current);
-        const expiryMs = getTokenExpiry(token);
-        if (!expiryMs) return;
+  // ── Schedule auto-logout when JWT expires ──
+  // Note: setTimeout max safe value is ~24.8 days (2^31-1 ms).
+  // For longer JWTs (30d), we re-check every 24h instead.
+  const MAX_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
 
-        const msUntilExpiry = expiryMs - Date.now();
+  const scheduleAutoLogout = useCallback(
+    (token) => {
+      clearTimeout(expiryTimerRef.current);
+      const expiryMs = getTokenExpiry(token);
+      if (!expiryMs) return;
 
-        if (msUntilExpiry <= 0) {
-            // Already expired
-            logout();
-            setSessionExpired(true);
-            return;
+      const msUntilExpiry = expiryMs - Date.now();
+
+      if (msUntilExpiry <= 0) {
+        // Already expired
+        logout();
+        setSessionExpired(true);
+        return;
+      }
+
+      // Cap timer to MAX_TIMEOUT; if token lasts longer, recheck later
+      const delay = Math.min(msUntilExpiry, MAX_TIMEOUT);
+
+      expiryTimerRef.current = setTimeout(() => {
+        const remaining = expiryMs - Date.now();
+        if (remaining <= 0) {
+          console.warn("⏰ JWT expired — auto-logging out");
+          logout();
+          setSessionExpired(true);
+        } else {
+          // Still valid, reschedule
+          scheduleAutoLogout(token);
         }
+      }, delay);
+    },
+    [logout],
+  );
 
-        expiryTimerRef.current = setTimeout(() => {
-            console.warn('⏰ JWT expired — auto-logging out');
-            logout();
-            setSessionExpired(true);
-        }, msUntilExpiry);
-    }, [logout]);
+  // ── Initialize from localStorage ──
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
 
-    // ── Initialize from localStorage ──
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        const savedUser = localStorage.getItem('user');
-
-        if (token && savedUser) {
-            const expiryMs = getTokenExpiry(token);
-            if (expiryMs && expiryMs <= Date.now()) {
-                // Token already expired
-                logout();
-                setSessionExpired(true);
-            } else {
-                setUser(JSON.parse(savedUser));
-                scheduleAutoLogout(token);
-            }
-        }
-        setLoading(false);
-    }, [logout, scheduleAutoLogout]);
-
-    // ── Listen for session-expired events from axios interceptor ──
-    useEffect(() => {
-        const handleSessionExpired = () => {
-            logout();
-            setSessionExpired(true);
-        };
-
-        window.addEventListener('auth:session-expired', handleSessionExpired);
-        return () => window.removeEventListener('auth:session-expired', handleSessionExpired);
-    }, [logout]);
-
-    // ── Login (store token + schedule expiry) ──
-    const login = (token, userData) => {
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
-        setSessionExpired(false);
+    if (token && savedUser) {
+      const expiryMs = getTokenExpiry(token);
+      if (expiryMs && expiryMs <= Date.now()) {
+        // Token already expired
+        logout();
+        setSessionExpired(true);
+      } else {
+        setUser(JSON.parse(savedUser));
         scheduleAutoLogout(token);
+      }
+    }
+    setLoading(false);
+  }, [logout, scheduleAutoLogout]);
+
+  // ── Listen for session-expired events from axios interceptor ──
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      logout();
+      setSessionExpired(true);
     };
 
-    const updateUser = (userData) => {
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-    };
+    window.addEventListener("auth:session-expired", handleSessionExpired);
+    return () =>
+      window.removeEventListener("auth:session-expired", handleSessionExpired);
+  }, [logout]);
 
-    // ── Clear session expired flag ──
-    const clearSessionExpired = () => setSessionExpired(false);
+  // ── Login (store token + schedule expiry) ──
+  const login = (token, userData) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(userData));
+    setUser(userData);
+    setSessionExpired(false);
+    scheduleAutoLogout(token);
+  };
 
-    // ============================================
-    // EMAIL/PASSWORD AUTH METHODS
-    // Phone numbers auto-transform to phone@cobalance.app
-    // ============================================
+  const updateUser = (userData) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
 
-    const loginWithPassword = async (identifier, password) => {
-        const email = transformForApi(identifier);
-        const response = await api.post('/auth/login-password', { email, password });
-        const { token, user: userData } = response.data;
-        login(token, userData);
-        return response.data;
-    };
+  // ── Clear session expired flag ──
+  const clearSessionExpired = () => setSessionExpired(false);
 
-    const signupWithPassword = async (identifier, password, name) => {
-        const email = transformForApi(identifier);
-        const response = await api.post('/auth/signup-password', { email, password, name });
-        const { token, user: userData } = response.data;
-        login(token, userData);
-        return response.data;
-    };
+  // ============================================
+  // EMAIL/PASSWORD AUTH METHODS
+  // Phone numbers auto-transform to phone@cobalance.app
+  // ============================================
 
-    return (
-        <AuthContext.Provider value={{
-            user,
-            login,
-            logout,
-            updateUser,
-            loginWithPassword,
-            signupWithPassword,
-            loading,
-            sessionExpired,
-            clearSessionExpired
-        }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const loginWithPassword = async (identifier, password) => {
+    const email = transformForApi(identifier);
+    const response = await api.post("/auth/login-password", {
+      email,
+      password,
+    });
+    const { token, user: userData } = response.data;
+    login(token, userData);
+    return response.data;
+  };
+
+  const signupWithPassword = async (identifier, password, name) => {
+    const email = transformForApi(identifier);
+    const response = await api.post("/auth/signup-password", {
+      email,
+      password,
+      name,
+    });
+    const { token, user: userData } = response.data;
+    login(token, userData);
+    return response.data;
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        updateUser,
+        loginWithPassword,
+        signupWithPassword,
+        loading,
+        sessionExpired,
+        clearSessionExpired,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within AuthProvider');
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
 };
 
 export default AuthContext;

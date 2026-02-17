@@ -61,6 +61,9 @@ const SignupWithPasswordPage = () => {
 
             if (errorData?.code === 'USER_EXISTS') {
                 setError(errorData.error);
+            } else if (errorData?.details) {
+                // Show server-side details for debugging
+                setError(`${errorData.error}: ${errorData.details}`);
             } else {
                 setError(errorData?.error || 'Signup failed. Please try again.');
             }

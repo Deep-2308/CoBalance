@@ -9,7 +9,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE,
-    mobile VARCHAR(15) UNIQUE,
+    mobile VARCHAR(15) UNIQUE, -- nullable for email-only signups
     name VARCHAR(100),
     password_hash VARCHAR(255),
     user_type VARCHAR(20) DEFAULT 'individual', -- 'individual' or 'business'
@@ -20,6 +20,12 @@ CREATE TABLE users (
     password_reset_expires TIMESTAMP WITH TIME ZONE,
     failed_login_attempts INTEGER DEFAULT 0,
     locked_until TIMESTAMP WITH TIME ZONE,
+    -- Email verification
+    email_verified BOOLEAN DEFAULT FALSE,
+    email_verification_sent_at TIMESTAMP WITH TIME ZONE,
+    -- Account deletion
+    deletion_requested_at TIMESTAMP WITH TIME ZONE,
+    deletion_reason TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     -- At least one identifier (email or mobile) is required
