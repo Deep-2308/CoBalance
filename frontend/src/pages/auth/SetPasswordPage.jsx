@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Lock, Eye, EyeOff, Mail, CheckCircle, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -16,16 +16,15 @@ const SetPasswordPage = () => {
     const location = useLocation();
     const { login } = useAuth();
 
-    // Store migration token in a ref so it survives re-renders after login()
-    const migrationTokenRef = useRef(location.state?.migrationToken || null);
-    const hasToken = migrationTokenRef.current !== null;
+    // Get migration token from router state (passed by LoginWithPasswordPage)
+    const migrationToken = location.state?.migrationToken;
 
-    // If no migration token on mount, redirect back to login
+    // If no migration token, redirect back to login
     useEffect(() => {
-        if (!hasToken) {
+        if (!migrationToken) {
             navigate('/auth/login-password', { replace: true });
         }
-    }, []); // Run only once on mount
+    }, [migrationToken, navigate]);
 
     const canSubmit = password.length >= 6 && password === confirmPassword;
 
@@ -46,7 +45,7 @@ const SetPasswordPage = () => {
         setLoading(true);
         try {
             const response = await api.post('/auth/set-password', {
-                migrationToken: migrationTokenRef.current,
+                migrationToken,
                 password,
                 email: email.trim() || undefined,
             });
@@ -78,7 +77,7 @@ const SetPasswordPage = () => {
         }
     };
 
-    if (!hasToken) return null;
+    if (!migrationToken) return null;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-primary-900 to-slate-900 flex flex-col relative overflow-hidden">

@@ -11,9 +11,15 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE,
     mobile VARCHAR(15) UNIQUE,
     name VARCHAR(100),
+    password_hash VARCHAR(255),
     user_type VARCHAR(20) DEFAULT 'individual', -- 'individual' or 'business'
     language VARCHAR(10) DEFAULT 'en',
     terms_accepted_at TIMESTAMP WITH TIME ZONE,
+    -- Security columns
+    password_reset_token VARCHAR(255),
+    password_reset_expires TIMESTAMP WITH TIME ZONE,
+    failed_login_attempts INTEGER DEFAULT 0,
+    locked_until TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     -- At least one identifier (email or mobile) is required

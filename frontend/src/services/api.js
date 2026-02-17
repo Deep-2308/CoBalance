@@ -32,12 +32,12 @@ api.interceptors.response.use(
 
       // Session expired or invalid token
       if (status === 401 || status === 403) {
-        // Only auto-logout for token issues, not for auth page requests
+        // Only auto-logout for token issues, not for login attempts
         const url = error.config?.url || '';
-        const isAuthRoute = url.includes('/auth/');
+        const isAuthRoute = url.includes('/auth/login') || url.includes('/auth/signup');
 
         if (!isAuthRoute) {
-          console.warn(`🚪 Session expired — [${status}] ${url}`, error.response.data);
+          console.warn('🚪 Session expired — logging out');
           localStorage.removeItem('token');
           localStorage.removeItem('user');
 

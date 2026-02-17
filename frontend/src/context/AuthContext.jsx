@@ -30,12 +30,6 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     // ── Schedule auto-logout when JWT expires ──
-    // NOTE: setTimeout uses a 32-bit signed int internally.
-    // Max safe delay = 2^31 - 1 = ~24.8 days. Our 30-day JWT exceeds this,
-    // causing an overflow that fires the timer IMMEDIATELY.
-    // Fix: cap at 12 hours and re-check on each tick.
-    const MAX_TIMEOUT_MS = 12 * 60 * 60 * 1000; // 12 hours
-
     const scheduleAutoLogout = useCallback((token) => {
         clearTimeout(expiryTimerRef.current);
         const expiryMs = getTokenExpiry(token);
@@ -50,21 +44,11 @@ export const AuthProvider = ({ children }) => {
             return;
         }
 
-        // Cap the delay to avoid 32-bit overflow, re-schedule if needed
-        const delay = Math.min(msUntilExpiry, MAX_TIMEOUT_MS);
-
         expiryTimerRef.current = setTimeout(() => {
-            // Re-check actual expiry (don't blindly logout on capped timer)
-            const remaining = expiryMs - Date.now();
-            if (remaining <= 0) {
-                console.warn('⏰ JWT expired — auto-logging out');
-                logout();
-                setSessionExpired(true);
-            } else {
-                // Token still valid, re-schedule
-                scheduleAutoLogout(token);
-            }
-        }, delay);
+            console.warn('⏰ JWT expired — auto-logging out');
+            logout();
+            setSessionExpired(true);
+        }, msUntilExpiry);
     }, [logout]);
 
     // ── Initialize from localStorage ──

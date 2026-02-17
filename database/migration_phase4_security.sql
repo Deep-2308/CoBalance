@@ -1,11 +1,14 @@
--- Phase 4: Auth Security Hardening Migration
--- Run this against your Supabase database
+-- Migration: Add password authentication columns to users table
+-- Run this in your Supabase SQL Editor BEFORE using password signup/login
 
--- Password reset support
+-- Core password column (required for password auth)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
+
+-- Password reset support (Phase 4)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_token VARCHAR(255);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_expires TIMESTAMP WITH TIME ZONE;
 
--- Account lockout support
+-- Account lockout support (Phase 4)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP WITH TIME ZONE;
 

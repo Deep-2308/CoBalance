@@ -2,11 +2,11 @@ import rateLimit from 'express-rate-limit';
 
 // ============================================
 // LOGIN RATE LIMITER
-// 20 attempts per 15 minutes per IP (relaxed for dev, tighten in production)
+// 5 attempts per 15 minutes per IP
 // ============================================
 export const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 20,
+    max: 5,
     standardHeaders: true,  // Return rate limit info in `RateLimit-*` headers
     legacyHeaders: false,
     message: {
@@ -22,11 +22,11 @@ export const loginLimiter = rateLimit({
 
 // ============================================
 // PASSWORD RESET RATE LIMITER
-// 10 attempts per 15 minutes per IP (relaxed for dev)
+// 3 attempts per 15 minutes per IP
 // ============================================
 export const passwordResetLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10,
+    max: 3,
     standardHeaders: true,
     legacyHeaders: false,
     message: {
